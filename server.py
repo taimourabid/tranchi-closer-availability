@@ -56,7 +56,7 @@ CLOSERS = [
      "capacity": 6, "work_range": "5:15 PM – 10:00 PM EDT",
      "day_ranges": {4: "5:15 PM – 9:00 PM EDT", 5: "12:00 PM – 6:00 PM EDT"},
      "off_weekdays": [6]},
-    {"name": "Amirah Adel",    "first": "Amirah", "cal_id": "", "tz_label": "EST",
+    {"name": "Amirah Adel",    "first": "Amirah", "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "EST",
      "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
      "off_weekdays": [0, 1]},
 ]
