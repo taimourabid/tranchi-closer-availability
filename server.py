@@ -68,19 +68,18 @@ CLOSER_CONFIG = {
         "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EDT",
         "capacity": 8, "work_range": "7:45 AM – 2:00 PM EDT",
         "day_ranges": {6: "7:00 AM – 1:00 PM EDT"},
-        "off_weekdays": [0, 4],
+        "off_weekdays": [0],
     },
     "MJEiaehaH7xeXndSvauP": {
         "name": "Amir", "first": "Amir",
         "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
         "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
         "day_ranges": {
-            1: "11:00 AM – 6:00 PM EDT",
             2: "7:00 AM – 1:30 PM & 6:00 PM – 8:00 PM EDT",
             3: "7:00 AM – 10:00 AM EDT",
             4: "7:00 AM – 8:00 AM & 2:00 PM – 8:00 PM EDT",
         },
-        "off_weekdays": [0],
+        "off_weekdays": [0, 1],
     },
     "lRRjsbYBPoZ1ppLD4Fw1": {
         "name": "Avery", "first": "Avery",
