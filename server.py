@@ -16,72 +16,96 @@ LA       = ZoneInfo("America/Los_Angeles")
 # Querying it with userId gives the exact availability shown in GHL's booking UI.
 TEAM_CAL = "l8S0FxBqnRFJY1CXQqrr"
 
-# user_id: GHL userId (from team calendar members)
+# user_id: GHL userId — used to query the team booking calendar (accurate near-term)
+# cal_id:  individual GHL calendar — fallback for dates beyond team calendar's booking window
 # off_weekdays: 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri 5=Sat 6=Sun
 # day_ranges: per-day work-range label overrides {weekday_int: "label"}
 CLOSERS = [
-    {"name": "Alyssa Bralich", "first": "Alyssa", "user_id": "djt6k0JScB4euA8dl5Vv", "tz_label": "PDT",
+    {"name": "Alyssa Bralich", "first": "Alyssa",
+     "user_id": "djt6k0JScB4euA8dl5Vv", "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PDT",
      "capacity": 8, "work_range": "10:00 AM – 4:00 PM PDT",
      "day_ranges": {4: "10:00 AM – 3:00 PM PDT"},
      "off_weekdays": [5, 6]},
-    {"name": "Luke Zonka",     "first": "Luke",   "user_id": "qnm8XMoAjIJdlwXpxMGV", "tz_label": "EDT",
+    {"name": "Luke Zonka",     "first": "Luke",
+     "user_id": "qnm8XMoAjIJdlwXpxMGV",  "cal_id": "WnKe7pHCL6O446qI7mHG", "tz_label": "EDT",
      "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
      "day_ranges": {6: "9:00 AM – 1:00 PM EDT"},
      "off_weekdays": [4, 5]},
-    {"name": "Caden Church",   "first": "Caden",  "user_id": "tQ4trl3utKYHvxuLwN3u", "tz_label": "PDT",
+    {"name": "Caden Church",   "first": "Caden",
+     "user_id": "tQ4trl3utKYHvxuLwN3u",  "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PDT",
      "capacity": 8, "work_range": "3:30 PM – 9:30 PM PDT",
      "day_ranges": {4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
      "off_weekdays": [6]},
-    {"name": "Cade Pepin",     "first": "Cade",   "user_id": "CdLTuSPvDCbQBbJ6foHM", "tz_label": "EDT",
+    {"name": "Cade Pepin",     "first": "Cade",
+     "user_id": "CdLTuSPvDCbQBbJ6foHM",  "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EDT",
      "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
      "off_weekdays": [6]},
-    {"name": "Jang Kim",       "first": "Jang",   "user_id": "kBuLVdKzAcockWIITfPi", "tz_label": "PDT",
+    {"name": "Jang Kim",       "first": "Jang",
+     "user_id": "kBuLVdKzAcockWIITfPi",  "cal_id": "VH7Dfgfoyq13dASbjKKP", "tz_label": "PDT",
      "capacity": 6, "work_range": "11:30 AM – 5:30 PM PDT",
      "off_weekdays": [4, 5, 6]},
-    {"name": "Ken Johnson",    "first": "Ken",    "user_id": "tgAe2L9UYtfN5ugLT1xb", "tz_label": "EDT",
+    {"name": "Ken Johnson",    "first": "Ken",
+     "user_id": "tgAe2L9UYtfN5ugLT1xb",  "cal_id": "QoGbwiSumcHigNI6HtlP", "tz_label": "EDT",
      "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
      "off_weekdays": [5, 6]},
-    {"name": "Lee Johnson",    "first": "Lee",    "user_id": "hQqYUjAsLphmPaVxh27l", "tz_label": "MDT",
+    {"name": "Lee Johnson",    "first": "Lee",
+     "user_id": "hQqYUjAsLphmPaVxh27l",  "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
      "capacity": 5, "work_range": "9:00 AM – 1:15 PM MDT",
      "off_weekdays": [5, 6]},
-    {"name": "Harry",          "first": "Harry",  "user_id": "MAnZbUiIBpBnDL8OM8PQ", "tz_label": "PDT",
+    {"name": "Harry",          "first": "Harry",
+     "user_id": "MAnZbUiIBpBnDL8OM8PQ",  "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "PDT",
      "capacity": 8, "work_range": "7:45 AM – 2:00 PM PDT",
      "off_weekdays": [0, 1, 4, 5, 6]},
-    {"name": "Amir",           "first": "Amir",   "user_id": "MJEiaehaH7xeXndSvauP", "tz_label": "EDT",
+    {"name": "Amir",           "first": "Amir",
+     "user_id": "MJEiaehaH7xeXndSvauP",  "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
      "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
      "day_ranges": {1: "11:00 AM – 6:00 PM EDT",
                     2: "7:00 AM – 1:30 PM & 6:00 PM – 8:00 PM EDT",
                     3: "7:00 AM – 10:00 AM EDT",
                     4: "7:00 AM – 8:00 AM & 2:00 PM – 8:00 PM EDT"},
      "off_weekdays": [0]},
-    {"name": "Avery",          "first": "Avery",  "user_id": "lRRjsbYBPoZ1ppLD4Fw1", "tz_label": "EDT",
+    {"name": "Avery",          "first": "Avery",
+     "user_id": "lRRjsbYBPoZ1ppLD4Fw1",  "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EDT",
      "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
      "off_weekdays": [0, 1]},
-    {"name": "Peter Godwin",   "first": "Peter",  "user_id": "NJnJKQea7HhOm43pwAX9", "tz_label": "EDT",
+    {"name": "Peter Godwin",   "first": "Peter",
+     "user_id": "NJnJKQea7HhOm43pwAX9",  "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EDT",
      "capacity": 6, "work_range": "5:15 PM – 10:00 PM EDT",
      "day_ranges": {4: "5:15 PM – 9:00 PM EDT", 5: "12:00 PM – 6:00 PM EDT"},
      "off_weekdays": [6]},
-    {"name": "Amirah Adel",    "first": "Amirah", "user_id": "qt3nCz8rsQvTCFeDrNCE", "tz_label": "EST",
+    {"name": "Amirah Adel",    "first": "Amirah",
+     "user_id": "qt3nCz8rsQvTCFeDrNCE",  "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "EST",
      "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
      "off_weekdays": [0, 1]},
 ]
 
 
 def fetch_closer(closer, start, start_ms, end_ms):
-    raw = {}
+    # Team calendar: accurate near-term (matches GHL booking UI)
+    team_raw = {}
     try:
         r = requests.get(
             f"{BASE}/calendars/{TEAM_CAL}/free-slots",
             headers=H,
-            params={
-                "startDate": start_ms,
-                "endDate":   end_ms,
-                "timezone":  "America/Los_Angeles",
-                "userId":    closer["user_id"],
-            },
+            params={"startDate": start_ms, "endDate": end_ms,
+                    "timezone": "America/Los_Angeles", "userId": closer["user_id"]},
             timeout=15,
         )
-        raw = r.json()
+        team_raw = r.json()
+    except Exception:
+        pass
+
+    # Individual calendar: fallback for dates beyond team calendar's booking window
+    ind_raw = {}
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/{closer['cal_id']}/free-slots",
+            headers=H,
+            params={"startDate": start_ms, "endDate": end_ms,
+                    "timezone": "America/Los_Angeles"},
+            timeout=15,
+        )
+        ind_raw = r.json()
     except Exception:
         pass
 
@@ -103,7 +127,12 @@ def fetch_closer(closer, start, start_ms, end_ms):
                 "slots": [], "work_range": "", "off": True,
             })
         else:
-            slots    = raw.get(date_str, {}).get("slots", [])
+            # Prefer team calendar; fall back to individual for dates it doesn't cover
+            if date_str in team_raw:
+                slots = team_raw[date_str].get("slots", [])
+            else:
+                slots = ind_raw.get(date_str, {}).get("slots", [])
+
             free     = len(slots)
             taken    = max(0, capacity - free)
             day_work = day_ranges.get(weekday, closer.get("work_range", ""))
