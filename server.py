@@ -52,12 +52,6 @@ CLOSER_CONFIG = {
         "capacity": 6, "work_range": "11:30 AM – 5:30 PM PDT",
         "off_weekdays": [4, 5, 6],
     },
-    "tgAe2L9UYtfN5ugLT1xb": {
-        "name": "Ken Johnson", "first": "Ken",
-        "cal_id": "QoGbwiSumcHigNI6HtlP", "tz_label": "EDT",
-        "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
-        "off_weekdays": [5, 6],
-    },
     "hQqYUjAsLphmPaVxh27l": {
         "name": "Lee Johnson", "first": "Lee",
         "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
@@ -144,12 +138,6 @@ def get_team_user_ids():
     # Fallback to static config if API call fails
     if not ids:
         ids = list(CLOSER_CONFIG.keys())
-    else:
-        # Ensure anyone in CLOSER_CONFIG is always included — GHL team calendar
-        # membership detection may miss users who are individually assigned.
-        for uid in CLOSER_CONFIG:
-            if uid not in ids:
-                ids.append(uid)
 
     with _cache_lock:
         _team_cache["ids"]     = ids
