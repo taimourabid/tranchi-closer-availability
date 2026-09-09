@@ -12,6 +12,7 @@ BASE      = "https://services.leadconnectorhq.com"
 ROOT      = os.path.dirname(os.path.abspath(__file__))
 LA        = ZoneInfo("America/Los_Angeles")
 TEAM_CAL  = "l8S0FxBqnRFJY1CXQqrr"
+LOC_ID    = "sXAvXUKpaePasaiX4etS"
 CACHE_TTL = 3600  # 1 hour
 
 # ── Per-closer config (keyed by GHL userId) ───────────────────────────────────
@@ -182,34 +183,83 @@ def fetch_closer(cfg, start, start_ms, end_ms):
     day_ranges = cfg.get("day_ranges", {})
     work_range = cfg.get("work_range", "")
 
-    # Team calendar: accurate near-term (matches GHL booking UI)
-    team_raw = {}
-    try:
-        r = requests.get(
-            f"{BASE}/calendars/{TEAM_CAL}/free-slots",
-            headers=H,
-            params={"startDate": start_ms, "endDate": end_ms,
-                    "timezone": "America/Los_Angeles", "userId": user_id},
-            timeout=15,
-        )
-        team_raw = r.json()
-    except Exception:
-        pass
+    # ── Four parallel GHL calls ───────────────────────────────────────────────
+    team_raw   = {}
+    ind_raw    = {}
+    appts_raw  = {}   # date → booked appointment count
+    blocks_raw = set()  # dates with a manual "blocked" entry
 
-    # Individual calendar: fallback for dates beyond team calendar's booking window
-    ind_raw = {}
-    if cal_id:
+    def _team():
         try:
             r = requests.get(
-                f"{BASE}/calendars/{cal_id}/free-slots",
-                headers=H,
+                f"{BASE}/calendars/{TEAM_CAL}/free-slots", headers=H,
+                params={"startDate": start_ms, "endDate": end_ms,
+                        "timezone": "America/Los_Angeles", "userId": user_id},
+                timeout=15)
+            return r.json()
+        except Exception:
+            return {}
+
+    def _ind():
+        if not cal_id:
+            return {}
+        try:
+            r = requests.get(
+                f"{BASE}/calendars/{cal_id}/free-slots", headers=H,
                 params={"startDate": start_ms, "endDate": end_ms,
                         "timezone": "America/Los_Angeles"},
-                timeout=15,
-            )
-            ind_raw = r.json()
+                timeout=15)
+            return r.json()
         except Exception:
-            pass
+            return {}
+
+    def _appts():
+        if not cal_id:
+            return {}
+        try:
+            r = requests.get(
+                f"{BASE}/calendars/events", headers=H,
+                params={"startTime": start_ms, "endTime": end_ms,
+                        "calendarId": cal_id, "locationId": LOC_ID},
+                timeout=15)
+            counts = {}
+            for e in r.json().get("events", []):
+                d = e.get("startTime", "")[:10]
+                if d:
+                    counts[d] = counts.get(d, 0) + 1
+            return counts
+        except Exception:
+            return {}
+
+    def _blocks():
+        try:
+            r = requests.get(
+                f"{BASE}/calendars/blocked-slots", headers=H,
+                params={"startTime": start_ms, "endTime": end_ms,
+                        "userId": user_id, "locationId": LOC_ID},
+                timeout=15)
+            dates = set()
+            for e in r.json().get("events", []):
+                if (e.get("title") == "blocked" and
+                        e.get("createdBy", {}).get("source") == "calendar_page"):
+                    d = e.get("startTime", "")[:10]
+                    if d:
+                        dates.add(d)
+            return dates
+        except Exception:
+            return set()
+
+    from concurrent.futures import ThreadPoolExecutor as _TPE, as_completed as _ac
+    with _TPE(max_workers=4) as p:
+        ft = {p.submit(_team): "team", p.submit(_ind): "ind",
+              p.submit(_appts): "appts", p.submit(_blocks): "blocks"}
+        for f in _ac(ft):
+            k = ft[f]
+            v = f.result()
+            if k == "team":   team_raw   = v
+            elif k == "ind":  ind_raw    = v
+            elif k == "appts": appts_raw = v
+            else:             blocks_raw = v
 
     days = []
     for i in range(7):
@@ -223,6 +273,7 @@ def fetch_closer(cfg, start, start_ms, end_ms):
                 "day_num": day.strftime("%-d"),
                 "free": 0, "taken": 0, "capacity": 0,
                 "slots": [], "work_range": "", "off": True,
+                "booked": 0, "is_blocked": False,
             })
         else:
             if date_str in team_raw:
@@ -230,14 +281,17 @@ def fetch_closer(cfg, start, start_ms, end_ms):
             else:
                 slots = ind_raw.get(date_str, {}).get("slots", [])
 
-            free     = len(slots)
-            taken    = max(0, capacity - free)
-            day_work = day_ranges.get(weekday, work_range)
+            free       = len(slots)
+            taken      = max(0, capacity - free)
+            booked     = appts_raw.get(date_str, 0)
+            is_blocked = date_str in blocks_raw
+            day_work   = day_ranges.get(weekday, work_range)
             days.append({
                 "date": date_str, "day_abbr": day.strftime("%a"),
                 "day_num": day.strftime("%-d"),
                 "free": free, "taken": taken, "capacity": capacity,
                 "slots": slots, "work_range": day_work, "off": False,
+                "booked": booked, "is_blocked": is_blocked,
             })
 
     return cfg, days

@@ -116,8 +116,15 @@
     font-size: 11px; font-weight: 600; color: #94a3b8;
     margin-top: 4px; line-height: 1.4;
   }
-  .cell-stats .taken-num { color: #dc2626; }
-  .cell-stats .total-num { color: #64748b; }
+  .cell-stats .booked-num { color: #0369a1; }
+  .cell-stats .total-num  { color: #64748b; }
+  .blocked-badge {
+    display: inline-block;
+    background: #fef2f2; color: #dc2626;
+    border: 1px solid #fecaca; border-radius: 4px;
+    font-size: 9px; font-weight: 800; letter-spacing: .07em;
+    padding: 2px 6px; text-transform: uppercase; margin-bottom: 4px;
+  }
 
   /* off cell */
   .cell-off-dash { font-size: 22px; color: #cbd5e1; font-weight: 700; }
@@ -194,7 +201,7 @@
     <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>1–3 free</span>
     <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>4–7 free</span>
     <span class="legend-item"><span class="legend-dot" style="background:#059669"></span>8+ free</span>
-    <span style="color:#94a3b8;margin-left:8px">Refreshes on page load. Taken = total capacity minus GHL free slots.</span>
+    <span style="color:#94a3b8;margin-left:8px">Refreshes on page load. <span style="display:inline-block;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:4px;font-size:9px;font-weight:800;padding:1px 5px;letter-spacing:.07em;text-transform:uppercase;vertical-align:middle">BLOCKED</span> = manual calendar block &nbsp;&bull;&nbsp; booked = real client appointments.</span>
   </div>
 
 </div>
@@ -252,15 +259,19 @@ function buildBody(closers) {
         cell = `<div class="cell-range">${d.work_range}</div>
                 <div class="cell-nodata">cal ID pending</div>`;
       } else {
-        const fc = freeClass(d.free);
-        const takenStr = d.taken > 0
-          ? `<span class="taken-num">${d.taken} taken</span> &middot; `
+        const fc          = freeClass(d.free);
+        const isBlocked   = d.is_blocked ?? false;
+        const booked      = d.booked ?? 0;
+        const blockedBadge = isBlocked ? '<div class="blocked-badge">BLOCKED</div>' : '';
+        const bookedStr   = booked > 0
+          ? `<span class="booked-num">${booked} booked</span> &middot; `
           : '';
         cell = `
           <div class="cell-range">${d.work_range}</div>
+          ${blockedBadge}
           <div class="cell-free ${fc}">${d.free}</div>
           <div class="cell-free-label">free slot${d.free !== 1 ? 's' : ''}</div>
-          <div class="cell-stats">${takenStr}<span class="total-num">${d.capacity} total</span></div>`;
+          <div class="cell-stats">${bookedStr}<span class="total-num">${d.capacity} total</span></div>`;
       }
 
       body += `<td class="day-cell${todayCls}${d.off ? ' off-day' : ''}">${cell}</td>`;
