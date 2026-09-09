@@ -1,4 +1,4 @@
-import os, requests
+import os, requests, threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -6,82 +6,183 @@ from flask import Flask, jsonify, send_file, redirect
 
 app = Flask(__name__)
 
-API_KEY  = "pit-ecd392f6-ec0c-4db5-beb0-5809c99b6c96"
-H        = {"Authorization": f"Bearer {API_KEY}", "Version": "2021-04-15"}
-BASE     = "https://services.leadconnectorhq.com"
-ROOT     = os.path.dirname(os.path.abspath(__file__))
-LA       = ZoneInfo("America/Los_Angeles")
+API_KEY   = "pit-ecd392f6-ec0c-4db5-beb0-5809c99b6c96"
+H         = {"Authorization": f"Bearer {API_KEY}", "Version": "2021-04-15"}
+BASE      = "https://services.leadconnectorhq.com"
+ROOT      = os.path.dirname(os.path.abspath(__file__))
+LA        = ZoneInfo("America/Los_Angeles")
+TEAM_CAL  = "l8S0FxBqnRFJY1CXQqrr"
+CACHE_TTL = 3600  # 1 hour
 
-# Source of truth: team booking calendar ("AI Real Estate Gold Rush | Tranchi AI")
-# Querying it with userId gives the exact availability shown in GHL's booking UI.
-TEAM_CAL = "l8S0FxBqnRFJY1CXQqrr"
+# ── Per-closer config (keyed by GHL userId) ───────────────────────────────────
+# When someone joins the team calendar in GHL, they auto-appear on the dashboard.
+# Add their userId here to control tz_label, work_range, capacity, and off days.
+CLOSER_CONFIG = {
+    "djt6k0JScB4euA8dl5Vv": {
+        "name": "Alyssa Bralich", "first": "Alyssa",
+        "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PDT",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM PDT",
+        "day_ranges": {4: "10:00 AM – 3:00 PM PDT"},
+        "off_weekdays": [5, 6],
+    },
+    "qnm8XMoAjIJdlwXpxMGV": {
+        "name": "Luke Zonka", "first": "Luke",
+        "cal_id": "WnKe7pHCL6O446qI7mHG", "tz_label": "EDT",
+        "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
+        "day_ranges": {6: "9:00 AM – 1:00 PM EDT"},
+        "off_weekdays": [4, 5],
+    },
+    "tQ4trl3utKYHvxuLwN3u": {
+        "name": "Caden Church", "first": "Caden",
+        "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PDT",
+        "capacity": 8, "work_range": "3:30 PM – 9:30 PM PDT",
+        "day_ranges": {4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
+        "off_weekdays": [6],
+    },
+    "CdLTuSPvDCbQBbJ6foHM": {
+        "name": "Cade Pepin", "first": "Cade",
+        "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EDT",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
+        "off_weekdays": [6],
+    },
+    "kBuLVdKzAcockWIITfPi": {
+        "name": "Jang Kim", "first": "Jang",
+        "cal_id": "VH7Dfgfoyq13dASbjKKP", "tz_label": "PDT",
+        "capacity": 6, "work_range": "11:30 AM – 5:30 PM PDT",
+        "off_weekdays": [4, 5, 6],
+    },
+    "tgAe2L9UYtfN5ugLT1xb": {
+        "name": "Ken Johnson", "first": "Ken",
+        "cal_id": "QoGbwiSumcHigNI6HtlP", "tz_label": "EDT",
+        "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
+        "off_weekdays": [5, 6],
+    },
+    "hQqYUjAsLphmPaVxh27l": {
+        "name": "Lee Johnson", "first": "Lee",
+        "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
+        "capacity": 5, "work_range": "9:00 AM – 1:15 PM MDT",
+        "off_weekdays": [5, 6],
+    },
+    "MAnZbUiIBpBnDL8OM8PQ": {
+        "name": "Harry", "first": "Harry",
+        "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EDT",
+        "capacity": 8, "work_range": "7:45 AM – 2:00 PM EDT",
+        "day_ranges": {6: "7:00 AM – 1:00 PM EDT"},
+        "off_weekdays": [0, 4],
+    },
+    "MJEiaehaH7xeXndSvauP": {
+        "name": "Amir", "first": "Amir",
+        "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "day_ranges": {
+            1: "11:00 AM – 6:00 PM EDT",
+            2: "7:00 AM – 1:30 PM & 6:00 PM – 8:00 PM EDT",
+            3: "7:00 AM – 10:00 AM EDT",
+            4: "7:00 AM – 8:00 AM & 2:00 PM – 8:00 PM EDT",
+        },
+        "off_weekdays": [0],
+    },
+    "lRRjsbYBPoZ1ppLD4Fw1": {
+        "name": "Avery", "first": "Avery",
+        "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EDT",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "off_weekdays": [0, 1],
+    },
+    "NJnJKQea7HhOm43pwAX9": {
+        "name": "Peter Godwin", "first": "Peter",
+        "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EDT",
+        "capacity": 6, "work_range": "5:15 PM – 10:00 PM EDT",
+        "day_ranges": {4: "5:15 PM – 9:00 PM EDT", 5: "12:00 PM – 6:00 PM EDT"},
+        "off_weekdays": [6],
+    },
+    "qt3nCz8rsQvTCFeDrNCE": {
+        "name": "Amirah Adel", "first": "Amirah",
+        "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "EST",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
+        "off_weekdays": [0, 1],
+    },
+}
 
-# user_id: GHL userId — used to query the team booking calendar (accurate near-term)
-# cal_id:  individual GHL calendar — fallback for dates beyond team calendar's booking window
-# off_weekdays: 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri 5=Sat 6=Sun
-# day_ranges: per-day work-range label overrides {weekday_int: "label"}
-CLOSERS = [
-    {"name": "Alyssa Bralich", "first": "Alyssa",
-     "user_id": "djt6k0JScB4euA8dl5Vv", "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PDT",
-     "capacity": 8, "work_range": "10:00 AM – 4:00 PM PDT",
-     "day_ranges": {4: "10:00 AM – 3:00 PM PDT"},
-     "off_weekdays": [5, 6]},
-    {"name": "Luke Zonka",     "first": "Luke",
-     "user_id": "qnm8XMoAjIJdlwXpxMGV",  "cal_id": "WnKe7pHCL6O446qI7mHG", "tz_label": "EDT",
-     "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
-     "day_ranges": {6: "9:00 AM – 1:00 PM EDT"},
-     "off_weekdays": [4, 5]},
-    {"name": "Caden Church",   "first": "Caden",
-     "user_id": "tQ4trl3utKYHvxuLwN3u",  "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PDT",
-     "capacity": 8, "work_range": "3:30 PM – 9:30 PM PDT",
-     "day_ranges": {4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
-     "off_weekdays": [6]},
-    {"name": "Cade Pepin",     "first": "Cade",
-     "user_id": "CdLTuSPvDCbQBbJ6foHM",  "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EDT",
-     "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
-     "off_weekdays": [6]},
-    {"name": "Jang Kim",       "first": "Jang",
-     "user_id": "kBuLVdKzAcockWIITfPi",  "cal_id": "VH7Dfgfoyq13dASbjKKP", "tz_label": "PDT",
-     "capacity": 6, "work_range": "11:30 AM – 5:30 PM PDT",
-     "off_weekdays": [4, 5, 6]},
-    {"name": "Ken Johnson",    "first": "Ken",
-     "user_id": "tgAe2L9UYtfN5ugLT1xb",  "cal_id": "QoGbwiSumcHigNI6HtlP", "tz_label": "EDT",
-     "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
-     "off_weekdays": [5, 6]},
-    {"name": "Lee Johnson",    "first": "Lee",
-     "user_id": "hQqYUjAsLphmPaVxh27l",  "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
-     "capacity": 5, "work_range": "9:00 AM – 1:15 PM MDT",
-     "off_weekdays": [5, 6]},
-    {"name": "Harry",          "first": "Harry",
-     "user_id": "MAnZbUiIBpBnDL8OM8PQ",  "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "PDT",
-     "capacity": 8, "work_range": "7:45 AM – 2:00 PM PDT",
-     "day_ranges": {6: "4:00 AM – 10:00 AM PDT"},
-     "off_weekdays": [0, 4]},
-    {"name": "Amir",           "first": "Amir",
-     "user_id": "MJEiaehaH7xeXndSvauP",  "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
-     "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-     "day_ranges": {1: "11:00 AM – 6:00 PM EDT",
-                    2: "7:00 AM – 1:30 PM & 6:00 PM – 8:00 PM EDT",
-                    3: "7:00 AM – 10:00 AM EDT",
-                    4: "7:00 AM – 8:00 AM & 2:00 PM – 8:00 PM EDT"},
-     "off_weekdays": [0]},
-    {"name": "Avery",          "first": "Avery",
-     "user_id": "lRRjsbYBPoZ1ppLD4Fw1",  "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EDT",
-     "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-     "off_weekdays": [0, 1]},
-    {"name": "Peter Godwin",   "first": "Peter",
-     "user_id": "NJnJKQea7HhOm43pwAX9",  "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EDT",
-     "capacity": 6, "work_range": "5:15 PM – 10:00 PM EDT",
-     "day_ranges": {4: "5:15 PM – 9:00 PM EDT", 5: "12:00 PM – 6:00 PM EDT"},
-     "off_weekdays": [6]},
-    {"name": "Amirah Adel",    "first": "Amirah",
-     "user_id": "qt3nCz8rsQvTCFeDrNCE",  "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "EST",
-     "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
-     "off_weekdays": [0, 1]},
-]
+# Display order for known closers; new team members appear after these.
+CLOSER_ORDER = list(CLOSER_CONFIG.keys())
+
+# ── Team member cache (auto-detects GHL team calendar membership) ─────────────
+_team_cache = {"ids": None, "expires": 0.0}
+_cache_lock = threading.Lock()
 
 
-def fetch_closer(closer, start, start_ms, end_ms):
+def get_team_user_ids():
+    """Return GHL team calendar member user IDs, cached for 1 hour.
+    Handles adds/removes from GHL automatically without code changes."""
+    now = datetime.utcnow().timestamp()
+    with _cache_lock:
+        if _team_cache["ids"] is not None and now < _team_cache["expires"]:
+            return list(_team_cache["ids"])
+
+    ids = []
+    try:
+        r   = requests.get(f"{BASE}/calendars/{TEAM_CAL}", headers=H, timeout=10)
+        cal = r.json().get("calendar", r.json())
+        raw = (
+            cal.get("teamMembers")
+            or cal.get("team_members")
+            or cal.get("members")
+            or []
+        )
+        for m in raw:
+            if isinstance(m, dict):
+                uid = m.get("userId") or m.get("user_id") or m.get("id")
+            elif isinstance(m, str):
+                uid = m
+            else:
+                uid = None
+            if uid:
+                ids.append(uid)
+    except Exception:
+        pass
+
+    # Fallback to static config if API call fails
+    if not ids:
+        ids = list(CLOSER_CONFIG.keys())
+
+    with _cache_lock:
+        _team_cache["ids"]     = ids
+        _team_cache["expires"] = now + CACHE_TTL
+    return ids
+
+
+def resolve_closer_cfg(user_id):
+    """Return config for user_id; auto-fetches name from GHL for unknown members."""
+    if user_id in CLOSER_CONFIG:
+        cfg = dict(CLOSER_CONFIG[user_id])
+        cfg["user_id"] = user_id
+        return cfg
+
+    cfg = {
+        "user_id": user_id, "name": user_id, "first": user_id[:6],
+        "cal_id": "", "tz_label": "", "capacity": 8,
+        "work_range": "", "off_weekdays": [], "day_ranges": {},
+    }
+    try:
+        r    = requests.get(f"{BASE}/users/{user_id}", headers=H, timeout=10)
+        u    = r.json().get("user", r.json())
+        name = u.get("name") or u.get("fullName") or ""
+        if name:
+            cfg["name"]  = name
+            cfg["first"] = name.split()[0]
+    except Exception:
+        pass
+    return cfg
+
+
+def fetch_closer(cfg, start, start_ms, end_ms):
+    user_id    = cfg["user_id"]
+    cal_id     = cfg.get("cal_id", "")
+    capacity   = cfg.get("capacity", 8)
+    off_days   = set(cfg.get("off_weekdays", []))
+    day_ranges = cfg.get("day_ranges", {})
+    work_range = cfg.get("work_range", "")
+
     # Team calendar: accurate near-term (matches GHL booking UI)
     team_raw = {}
     try:
@@ -89,7 +190,7 @@ def fetch_closer(closer, start, start_ms, end_ms):
             f"{BASE}/calendars/{TEAM_CAL}/free-slots",
             headers=H,
             params={"startDate": start_ms, "endDate": end_ms,
-                    "timezone": "America/Los_Angeles", "userId": closer["user_id"]},
+                    "timezone": "America/Los_Angeles", "userId": user_id},
             timeout=15,
         )
         team_raw = r.json()
@@ -98,23 +199,20 @@ def fetch_closer(closer, start, start_ms, end_ms):
 
     # Individual calendar: fallback for dates beyond team calendar's booking window
     ind_raw = {}
-    try:
-        r = requests.get(
-            f"{BASE}/calendars/{closer['cal_id']}/free-slots",
-            headers=H,
-            params={"startDate": start_ms, "endDate": end_ms,
-                    "timezone": "America/Los_Angeles"},
-            timeout=15,
-        )
-        ind_raw = r.json()
-    except Exception:
-        pass
+    if cal_id:
+        try:
+            r = requests.get(
+                f"{BASE}/calendars/{cal_id}/free-slots",
+                headers=H,
+                params={"startDate": start_ms, "endDate": end_ms,
+                        "timezone": "America/Los_Angeles"},
+                timeout=15,
+            )
+            ind_raw = r.json()
+        except Exception:
+            pass
 
-    capacity   = closer.get("capacity", 0)
-    off_days   = set(closer.get("off_weekdays", []))
-    day_ranges = closer.get("day_ranges", {})
     days = []
-
     for i in range(7):
         day      = start + timedelta(days=i)
         date_str = day.strftime("%Y-%m-%d")
@@ -128,7 +226,6 @@ def fetch_closer(closer, start, start_ms, end_ms):
                 "slots": [], "work_range": "", "off": True,
             })
         else:
-            # Prefer team calendar; fall back to individual for dates it doesn't cover
             if date_str in team_raw:
                 slots = team_raw[date_str].get("slots", [])
             else:
@@ -136,7 +233,7 @@ def fetch_closer(closer, start, start_ms, end_ms):
 
             free     = len(slots)
             taken    = max(0, capacity - free)
-            day_work = day_ranges.get(weekday, closer.get("work_range", ""))
+            day_work = day_ranges.get(weekday, work_range)
             days.append({
                 "date": date_str, "day_abbr": day.strftime("%a"),
                 "day_num": day.strftime("%-d"),
@@ -144,7 +241,7 @@ def fetch_closer(closer, start, start_ms, end_ms):
                 "slots": slots, "work_range": day_work, "off": False,
             })
 
-    return closer, days
+    return cfg, days
 
 
 @app.route("/api/closer-availability")
@@ -155,23 +252,27 @@ def api_closer_availability():
     start_ms = int(start.timestamp() * 1000)
     end_ms   = int(end.timestamp()   * 1000)
 
+    team_ids = get_team_user_ids()
+    cfgs     = [resolve_closer_cfg(uid) for uid in team_ids]
+
+    # Known members in defined order, then unknown/new members alphabetically
+    order_idx = {uid: i for i, uid in enumerate(CLOSER_ORDER)}
+    cfgs.sort(key=lambda c: (order_idx.get(c["user_id"], len(CLOSER_ORDER)), c["name"]))
+
     results_map = {}
-    with ThreadPoolExecutor(max_workers=12) as pool:
-        futures = {
-            pool.submit(fetch_closer, c, start, start_ms, end_ms): c
-            for c in CLOSERS
-        }
+    with ThreadPoolExecutor(max_workers=max(len(cfgs), 1)) as pool:
+        futures = {pool.submit(fetch_closer, c, start, start_ms, end_ms): c for c in cfgs}
         for future in as_completed(futures):
-            closer, days = future.result()
-            results_map[closer["name"]] = {
-                "name":       closer["name"],
-                "first":      closer["first"],
-                "tz_label":   closer.get("tz_label", "PDT"),
+            cfg, days = future.result()
+            results_map[cfg["user_id"]] = {
+                "name":       cfg["name"],
+                "first":      cfg["first"],
+                "tz_label":   cfg.get("tz_label", ""),
                 "days":       days,
                 "total_free": sum(d["free"] for d in days),
             }
 
-    results = [results_map[c["name"]] for c in CLOSERS if c["name"] in results_map]
+    results = [results_map[c["user_id"]] for c in cfgs if c["user_id"] in results_map]
 
     return jsonify({
         "closers":    results,
