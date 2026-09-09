@@ -144,6 +144,12 @@ def get_team_user_ids():
     # Fallback to static config if API call fails
     if not ids:
         ids = list(CLOSER_CONFIG.keys())
+    else:
+        # Ensure anyone in CLOSER_CONFIG is always included — GHL team calendar
+        # membership detection may miss users who are individually assigned.
+        for uid in CLOSER_CONFIG:
+            if uid not in ids:
+                ids.append(uid)
 
     with _cache_lock:
         _team_cache["ids"]     = ids
@@ -237,22 +243,30 @@ def fetch_closer(cfg, start, start_ms, end_ms):
             return {}
 
     def _blocks():
+        # Returns {date: [(block_start_dt, block_end_dt), ...]} for manual blocks only.
+        from datetime import datetime as _dt
         try:
             r = requests.get(
                 f"{BASE}/calendars/blocked-slots", headers=H,
                 params={"startTime": start_ms, "endTime": end_ms,
                         "userId": user_id, "locationId": LOC_ID},
                 timeout=15)
-            dates = set()
+            result = {}
             for e in r.json().get("events", []):
                 if (e.get("title") == "blocked" and
                         e.get("createdBy", {}).get("source") == "calendar_page"):
-                    d = e.get("startTime", "")[:10]
-                    if d:
-                        dates.add(d)
-            return dates
+                    d  = e.get("startTime", "")[:10]
+                    bs = e.get("startTime", "")
+                    be = e.get("endTime", "")
+                    if d and bs and be:
+                        try:
+                            result.setdefault(d, []).append(
+                                (_dt.fromisoformat(bs), _dt.fromisoformat(be)))
+                        except Exception:
+                            pass
+            return result
         except Exception:
-            return set()
+            return {}
 
     from concurrent.futures import ThreadPoolExecutor as _TPE, as_completed as _ac
     with _TPE(max_workers=4) as p:
@@ -313,10 +327,41 @@ def fetch_closer(cfg, start, start_ms, end_ms):
                         valid.append(s)
                 slots = valid
 
-            free       = len(slots)
-            taken      = max(0, capacity - free)
-            is_blocked = date_str in blocks_raw
-            day_work   = day_ranges.get(weekday, work_range)
+            free     = len(slots)
+            taken    = max(0, capacity - free)
+            day_work = day_ranges.get(weekday, work_range)
+
+            # Only flag BLOCKED if the manual block overlaps working time on this day:
+            # i.e. it overlaps at least one appointment or free slot.
+            # Blocks entirely outside working hours (e.g. 5–11 PM after-hours cleanup)
+            # are irrelevant and hidden. If there are no appointments AND no free slots,
+            # any block is relevant (it's preventing booking for the whole day).
+            from datetime import datetime as _dt, timedelta as _td
+            SLOT_DUR   = _td(minutes=45)
+            day_blocks = blocks_raw.get(date_str, [])
+            if not day_blocks:
+                is_blocked = False
+            elif not appt_starts and not slots:
+                is_blocked = True  # full-day block with nothing else → relevant
+            else:
+                working_periods = []
+                for a in appt_starts:
+                    try:
+                        a_dt = _dt.fromisoformat(a)
+                        working_periods.append((a_dt, a_dt + SLOT_DUR))
+                    except Exception:
+                        pass
+                for s in slots:
+                    try:
+                        s_dt = _dt.fromisoformat(s)
+                        working_periods.append((s_dt, s_dt + SLOT_DUR))
+                    except Exception:
+                        pass
+                is_blocked = any(
+                    b_start < p_end and p_start < b_end
+                    for b_start, b_end in day_blocks
+                    for p_start, p_end in working_periods
+                )
             days.append({
                 "date": date_str, "day_abbr": day.strftime("%a"),
                 "day_num": day.strftime("%-d"),
