@@ -362,12 +362,33 @@ def fetch_closer(cfg, start, start_ms, end_ms):
                     for b_start, b_end in day_blocks
                     for p_start, p_end in working_periods
                 )
+
+            # Build human-readable block time ranges (for display in the badge)
+            TZ_NAMES = {
+                "PDT": "America/Los_Angeles", "PST": "America/Los_Angeles",
+                "EDT": "America/New_York",    "EST": "America/New_York",
+                "MDT": "America/Denver",      "MST": "America/Denver",
+                "CDT": "America/Chicago",     "CST": "America/Chicago",
+            }
+            block_times = []
+            if is_blocked:
+                tz_lbl    = cfg.get("tz_label", "PDT")
+                closer_tz = ZoneInfo(TZ_NAMES.get(tz_lbl, "America/Los_Angeles"))
+                def _fmt(dt):
+                    s = dt.strftime("%-I:%M %p")
+                    return s.replace(":00 ", " ")  # "5:00 PM" → "5 PM"
+                for b_start, b_end in day_blocks:
+                    bs = b_start.astimezone(closer_tz)
+                    be = b_end.astimezone(closer_tz)
+                    block_times.append(f"{_fmt(bs)} – {_fmt(be)} {tz_lbl}")
+
             days.append({
                 "date": date_str, "day_abbr": day.strftime("%a"),
                 "day_num": day.strftime("%-d"),
                 "free": free, "taken": taken, "capacity": capacity,
                 "slots": slots, "work_range": day_work, "off": False,
                 "booked": booked, "is_blocked": is_blocked,
+                "block_times": block_times,
             })
 
     return cfg, days
