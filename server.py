@@ -214,20 +214,25 @@ def fetch_closer(cfg, start, start_ms, end_ms):
             return {}
 
     def _appts():
-        if not cal_id:
-            return {}
+        # Query by userId (not calendarId) — bookings go through the team calendar,
+        # not the closer's individual calendar, so calendarId filter misses most appointments.
+        ACTIVE = {"confirmed", "scheduled", "new"}
         try:
             r = requests.get(
                 f"{BASE}/calendars/events", headers=H,
                 params={"startTime": start_ms, "endTime": end_ms,
-                        "calendarId": cal_id, "locationId": LOC_ID},
+                        "userId": user_id, "locationId": LOC_ID},
                 timeout=15)
-            counts = {}
+            # Return {date: [startTime, ...]} for confirmed appointments only
+            result = {}
             for e in r.json().get("events", []):
+                if e.get("appointmentStatus", "") not in ACTIVE:
+                    continue
                 d = e.get("startTime", "")[:10]
-                if d:
-                    counts[d] = counts.get(d, 0) + 1
-            return counts
+                t = e.get("startTime", "")
+                if d and t:
+                    result.setdefault(d, []).append(t)
+            return result
         except Exception:
             return {}
 
@@ -281,9 +286,35 @@ def fetch_closer(cfg, start, start_ms, end_ms):
             else:
                 slots = ind_raw.get(date_str, {}).get("slots", [])
 
+            # Confirmed appointment start times for this day
+            appt_starts = appts_raw.get(date_str, [])
+            booked      = len(appt_starts)
+
+            # Filter: only keep a slot if it doesn't overlap any confirmed appointment.
+            # Overlap: slot [t, t+45min) intersects appointment [a, a+45min)
+            # when t < a+45min AND a < t+45min.
+            if appt_starts:
+                from datetime import datetime as _dt, timedelta as _td
+                SLOT_DUR = _td(minutes=45)
+                appt_dts = []
+                for a in appt_starts:
+                    try:
+                        appt_dts.append(_dt.fromisoformat(a))
+                    except Exception:
+                        pass
+                valid = []
+                for s in slots:
+                    try:
+                        s_dt  = _dt.fromisoformat(s)
+                        s_end = s_dt + SLOT_DUR
+                        if not any(s_dt < (a + SLOT_DUR) and a < s_end for a in appt_dts):
+                            valid.append(s)
+                    except Exception:
+                        valid.append(s)
+                slots = valid
+
             free       = len(slots)
             taken      = max(0, capacity - free)
-            booked     = appts_raw.get(date_str, 0)
             is_blocked = date_str in blocks_raw
             day_work   = day_ranges.get(weekday, work_range)
             days.append({
