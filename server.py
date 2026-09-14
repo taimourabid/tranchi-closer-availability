@@ -13,7 +13,11 @@ ROOT      = os.path.dirname(os.path.abspath(__file__))
 LA        = ZoneInfo("America/Los_Angeles")
 TEAM_CAL  = "l8S0FxBqnRFJY1CXQqrr"
 LOC_ID    = "sXAvXUKpaePasaiX4etS"
-CACHE_TTL = 3600  # 1 hour
+CACHE_TTL     = 3600  # 1 hour
+CAL_HOURS_TTL = 3600  # cache individual calendar openHours for 1 hour
+
+# GHL uses Sun=0 … Sat=6; Python weekday() uses Mon=0 … Sun=6
+GHL_TO_PY = {0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
 
 # ── Per-closer config (keyed by GHL userId) ───────────────────────────────────
 # When someone joins the team calendar in GHL, they auto-appear on the dashboard.
@@ -23,15 +27,7 @@ CLOSER_CONFIG = {
         "name": "Alyssa Bralich", "first": "Alyssa",
         "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PDT",
         "capacity": 8, "work_range": "10:00 AM – 4:00 PM PDT",
-        "day_ranges": {4: "10:00 AM – 3:00 PM PDT"},
         "off_weekdays": [5, 6],
-    },
-    "qnm8XMoAjIJdlwXpxMGV": {
-        "name": "Luke Zonka", "first": "Luke",
-        "cal_id": "WnKe7pHCL6O446qI7mHG", "tz_label": "EDT",
-        "capacity": 8, "work_range": "9:00 AM – 3:00 PM EDT",
-        "day_ranges": {6: "9:00 AM – 1:00 PM EDT"},
-        "off_weekdays": [4, 5],
     },
     "tQ4trl3utKYHvxuLwN3u": {
         "name": "Caden Church", "first": "Caden",
@@ -97,8 +93,10 @@ CLOSER_CONFIG = {
 CLOSER_ORDER = list(CLOSER_CONFIG.keys())
 
 # ── Team member cache (auto-detects GHL team calendar membership) ─────────────
-_team_cache = {"ids": None, "expires": 0.0}
-_cache_lock = threading.Lock()
+_team_cache      = {"ids": None, "expires": 0.0}
+_cache_lock      = threading.Lock()
+_cal_hours_cache = {}          # cal_id → (expires_ts, result_tuple)
+_cal_hours_lock  = threading.Lock()
 
 
 def get_team_user_ids():
@@ -165,13 +163,84 @@ def resolve_closer_cfg(user_id):
     return cfg
 
 
+def _fmt_time(h, m):
+    suf = "AM" if h < 12 else "PM"
+    return f"{h % 12 or 12}:{m:02d} {suf}"
+
+
+def fetch_calendar_hours(cal_id):
+    """
+    Fetch openHours from a GHL individual calendar and return:
+      (day_hours, off_days, work_range_no_tz, day_ranges_no_tz)
+    where day_hours is {py_weekday: (open_h, open_m, close_h, close_m)}.
+    Returns (None, None, None, None) if unavailable or empty.
+    Cached for CAL_HOURS_TTL seconds.
+    """
+    if not cal_id:
+        return None, None, None, None
+
+    now = datetime.utcnow().timestamp()
+    with _cal_hours_lock:
+        cached = _cal_hours_cache.get(cal_id)
+        if cached and now < cached[0]:
+            return cached[1]
+
+    result = (None, None, None, None)
+    try:
+        r = requests.get(f"{BASE}/calendars/{cal_id}", headers=H, timeout=10)
+        cal = r.json().get("calendar", r.json())
+        open_hours = cal.get("openHours", [])
+        if open_hours and isinstance(open_hours, list):
+            day_hours = {}
+            for entry in open_hours:
+                ghl_days = entry.get("daysOfTheWeek", [])
+                hrs = entry.get("hours", [])
+                if not hrs:
+                    continue
+                h = hrs[0]
+                oh = int(h.get("openHour", 9));  om = int(h.get("openMinute", 0))
+                ch = int(h.get("closeHour", 17)); cm = int(h.get("closeMinute", 0))
+                for gd in ghl_days:
+                    py_d = GHL_TO_PY.get(int(gd))
+                    if py_d is not None:
+                        day_hours[py_d] = (oh, om, ch, cm)
+
+            if day_hours:
+                from collections import Counter
+                base = Counter(day_hours.values()).most_common(1)[0][0]
+                work_range_no_tz = f"{_fmt_time(*base[:2])} – {_fmt_time(*base[2:])}"
+                day_ranges_no_tz = {
+                    d: f"{_fmt_time(*s[:2])} – {_fmt_time(*s[2:])}"
+                    for d, s in day_hours.items() if s != base
+                }
+                off_days = [d for d in range(7) if d not in day_hours]
+                result = (day_hours, off_days, work_range_no_tz, day_ranges_no_tz)
+    except Exception:
+        pass
+
+    with _cal_hours_lock:
+        _cal_hours_cache[cal_id] = (now + CAL_HOURS_TTL, result)
+    return result
+
+
 def fetch_closer(cfg, start, start_ms, end_ms):
-    user_id    = cfg["user_id"]
-    cal_id     = cfg.get("cal_id", "")
-    capacity   = cfg.get("capacity", 8)
-    off_days   = set(cfg.get("off_weekdays", []))
-    day_ranges = cfg.get("day_ranges", {})
-    work_range = cfg.get("work_range", "")
+    user_id  = cfg["user_id"]
+    cal_id   = cfg.get("cal_id", "")
+    capacity = cfg.get("capacity", 8)
+    tz_label = cfg.get("tz_label", "PDT")
+
+    # Pull schedule live from GHL; fall back to hardcoded config if unavailable
+    _, ghl_off_days, ghl_work_range, ghl_day_ranges = fetch_calendar_hours(cal_id)
+    if ghl_off_days is not None:
+        off_days   = set(ghl_off_days)
+        work_range = f"{ghl_work_range} {tz_label}" if ghl_work_range else cfg.get("work_range", "")
+        day_ranges = {d: f"{r} {tz_label}" for d, r in (ghl_day_ranges or {}).items()}
+        # Config day_ranges override GHL (manual corrections take precedence)
+        day_ranges.update(cfg.get("day_ranges", {}))
+    else:
+        off_days   = set(cfg.get("off_weekdays", []))
+        work_range = cfg.get("work_range", "")
+        day_ranges = cfg.get("day_ranges", {})
 
     # ── Four parallel GHL calls ───────────────────────────────────────────────
     team_raw   = {}
