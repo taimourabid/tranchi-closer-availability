@@ -33,7 +33,7 @@ CLOSER_CONFIG = {
         "name": "Caden Church", "first": "Caden",
         "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PDT",
         "capacity": 8, "work_range": "3:30 PM – 9:30 PM PDT",
-        "day_ranges": {4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
+        "day_ranges": {2: "3:30 PM – 5:00 PM PDT", 4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
         "off_weekdays": [6],
     },
     "CdLTuSPvDCbQBbJ6foHM": {
@@ -57,34 +57,35 @@ CLOSER_CONFIG = {
     "MAnZbUiIBpBnDL8OM8PQ": {
         "name": "Harry", "first": "Harry",
         "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EDT",
-        "capacity": 8, "work_range": "7:45 AM – 2:00 PM EDT",
-        "day_ranges": {6: "7:00 AM – 1:00 PM EDT"},
+        "capacity": 8, "work_range": "10:45 AM – 5:00 PM EDT",
+        "day_ranges": {6: "7:00 AM – 1:00 PM EDT", 4: "7:45 AM – 2:00 PM EDT", 5: "7:45 AM – 5:00 PM EDT"},
         "off_weekdays": [0],
     },
     "MJEiaehaH7xeXndSvauP": {
         "name": "Amir", "first": "Amir",
         "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
         "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-        "day_ranges": {3: "8:00 AM – 10:00 AM EDT"},
-        "off_weekdays": [0, 1],
+        "day_ranges": {6: "11:00 AM – 3:00 PM EDT", 0: "5:00 PM – 12:00 AM EDT", 1: "5:30 PM – 12:00 AM EDT", 3: "8:00 AM – 10:00 AM EDT"},
+        "off_weekdays": [5],
     },
     "lRRjsbYBPoZ1ppLD4Fw1": {
         "name": "Avery", "first": "Avery",
         "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EDT",
         "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "day_ranges": {6: "11:00 AM – 4:00 PM EDT", 4: "11:00 AM – 6:00 PM EDT"},
         "off_weekdays": [0, 1],
     },
     "NJnJKQea7HhOm43pwAX9": {
         "name": "Peter Godwin", "first": "Peter",
         "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EDT",
-        "capacity": 6, "work_range": "5:15 PM – 10:00 PM EDT",
-        "day_ranges": {4: "5:15 PM – 9:00 PM EDT", 5: "12:00 PM – 6:00 PM EDT"},
+        "capacity": 6, "work_range": "7:00 AM – 10:00 PM EDT",
+        "day_ranges": {3: "7:00 AM – 6:00 PM EDT", 5: "10:00 AM – 7:00 PM EDT"},
         "off_weekdays": [6],
     },
     "qt3nCz8rsQvTCFeDrNCE": {
         "name": "Amirah Adel", "first": "Amirah",
-        "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "EST",
-        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
+        "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "BST",
+        "capacity": 8, "work_range": "3:00 PM – 10:00 PM BST",
         "off_weekdays": [0, 1],
     },
 }
@@ -422,6 +423,7 @@ def fetch_closer(cfg, start, start_ms, end_ms):
                 "EDT": "America/New_York",    "EST": "America/New_York",
                 "MDT": "America/Denver",      "MST": "America/Denver",
                 "CDT": "America/Chicago",     "CST": "America/Chicago",
+                "BST": "Europe/London",       "GMT": "Europe/London",
             }
             block_times = []
             if is_blocked:
