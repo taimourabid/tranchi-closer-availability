@@ -114,6 +114,12 @@ CLOSER_CONFIG = {
         "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
         "off_weekdays": [1],
     },
+    "04HxeHctHNWK1HzrzvKA": {
+        "name": "Kera Beattie", "first": "Kera",
+        "cal_id": "77YwGuoYftp4A09avPUK", "tz_label": "EDT",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EDT",
+        "off_weekdays": [6],
+    },
 }
 
 # Display order for known closers; new team members appear after these.
