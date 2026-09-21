@@ -88,6 +88,32 @@ CLOSER_CONFIG = {
         "capacity": 8, "work_range": "3:00 PM – 10:00 PM BST",
         "off_weekdays": [0, 1],
     },
+    "k9PJ9X296OSPiuYlwSJL": {
+        "name": "Adam Kuperman", "first": "Adam",
+        "cal_id": "g0JUmlXjHuafdO3avoem", "tz_label": "EDT",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "off_weekdays": [5, 6],
+    },
+    "Kom4DBd4cfmGKyCtxdUl": {
+        "name": "Alexander N", "first": "Alexander",
+        "cal_id": "fwq8ZGR0f24x2yJgiFWz", "tz_label": "EDT",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
+        "day_ranges": {4: "10:00 AM – 4:00 PM EDT"},
+        "off_weekdays": [5, 6],
+    },
+    "fYOGA6Qx7ePCSyj4OHoK": {
+        "name": "Tate Zablotny", "first": "Tate",
+        "cal_id": "4f3Fqo5B9tNDtW6JeETf", "tz_label": "EDT",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EDT",
+        "day_ranges": {6: "11:00 AM – 6:00 PM EDT"},
+        "off_weekdays": [],
+    },
+    "0QXG4WmuozFII9i4qgax": {
+        "name": "Caleb Rice", "first": "Caleb",
+        "cal_id": "clKTuP4p0g2pFxj4Dp4V", "tz_label": "EDT",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "off_weekdays": [1],
+    },
 }
 
 # Display order for known closers; new team members appear after these.
