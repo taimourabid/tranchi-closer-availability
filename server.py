@@ -11,7 +11,9 @@ H         = {"Authorization": f"Bearer {API_KEY}", "Version": "2021-04-15"}
 BASE      = "https://services.leadconnectorhq.com"
 ROOT      = os.path.dirname(os.path.abspath(__file__))
 LA        = ZoneInfo("America/Los_Angeles")
+EDT       = ZoneInfo("America/New_York")
 TEAM_CAL  = "l8S0FxBqnRFJY1CXQqrr"
+WEBINAR_CAL = "iLz9bkWMA1T9Hs7CwdDH"
 LOC_ID    = "sXAvXUKpaePasaiX4etS"
 CACHE_TTL     = 3600  # 1 hour
 CAL_HOURS_TTL = 3600  # cache individual calendar openHours for 1 hour
@@ -130,6 +132,8 @@ _team_cache      = {"ids": None, "expires": 0.0}
 _cache_lock      = threading.Lock()
 _cal_hours_cache = {}          # cal_id → (expires_ts, result_tuple)
 _cal_hours_lock  = threading.Lock()
+_webinar_cache   = {"ids": None, "expires": 0.0}
+_webinar_lock    = threading.Lock()
 
 
 def get_team_user_ids():
@@ -527,6 +531,130 @@ def dashboard():
 @app.route("/")
 def root():
     return redirect("/closer-availability")
+
+
+# ── Webinar Calendar Availability ─────────────────────────────────────────────
+
+def get_webinar_user_ids():
+    """Return GHL webinar calendar member user IDs, cached for 1 hour."""
+    now = datetime.utcnow().timestamp()
+    with _webinar_lock:
+        if _webinar_cache["ids"] is not None and now < _webinar_cache["expires"]:
+            return list(_webinar_cache["ids"])
+
+    ids = []
+    try:
+        r   = requests.get(f"{BASE}/calendars/{WEBINAR_CAL}", headers=H, timeout=10)
+        cal = r.json().get("calendar", r.json())
+        raw = cal.get("teamMembers") or cal.get("team_members") or cal.get("members") or []
+        for m in raw:
+            if isinstance(m, dict):
+                uid = m.get("userId") or m.get("user_id") or m.get("id")
+            elif isinstance(m, str):
+                uid = m
+            else:
+                uid = None
+            if uid:
+                ids.append(uid)
+    except Exception:
+        pass
+
+    with _webinar_lock:
+        _webinar_cache["ids"]     = ids
+        _webinar_cache["expires"] = now + CACHE_TTL
+    return ids
+
+
+def fetch_webinar_closer(cfg, start_ms, end_ms, tonight_cutoff_h, today_str, tomorrow_str):
+    """Fetch today's post-8pm and tomorrow's all slots for one closer from the webinar calendar."""
+    user_id = cfg["user_id"]
+
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/{WEBINAR_CAL}/free-slots",
+            headers=H,
+            params={
+                "startDate": start_ms,
+                "endDate":   end_ms,
+                "timezone":  "America/New_York",
+                "userId":    user_id,
+            },
+            timeout=15,
+        )
+        data = r.json()
+    except Exception:
+        data = {}
+
+    def fmt_slot(s):
+        try:
+            dt = datetime.fromisoformat(s).astimezone(EDT)
+            return dt.strftime("%-I:%M %p")
+        except Exception:
+            return s
+
+    today_raw    = data.get(today_str, {}).get("slots", [])
+    tomorrow_raw = data.get(tomorrow_str, {}).get("slots", [])
+
+    tonight_slots = []
+    for s in today_raw:
+        try:
+            dt = datetime.fromisoformat(s).astimezone(EDT)
+            if dt.hour >= tonight_cutoff_h:
+                tonight_slots.append(fmt_slot(s))
+        except Exception:
+            pass
+
+    tomorrow_slots = [fmt_slot(s) for s in tomorrow_raw]
+
+    return {
+        "name":           cfg["name"],
+        "first":          cfg["first"],
+        "tonight_slots":  tonight_slots,
+        "tonight_count":  len(tonight_slots),
+        "tomorrow_slots": tomorrow_slots,
+        "tomorrow_count": len(tomorrow_slots),
+    }
+
+
+@app.route("/api/webinar-availability")
+def api_webinar_availability():
+    now_edt   = datetime.now(EDT)
+    today     = now_edt.replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow  = today + timedelta(days=1)
+
+    start_ms  = int(today.timestamp() * 1000)
+    end_ms    = int((tomorrow + timedelta(days=1)).timestamp() * 1000)
+
+    today_str    = today.strftime("%Y-%m-%d")
+    tomorrow_str = tomorrow.strftime("%Y-%m-%d")
+
+    team_ids = get_webinar_user_ids()
+    cfgs     = [resolve_closer_cfg(uid) for uid in team_ids]
+    cfgs.sort(key=lambda c: c["name"])
+
+    results = []
+    with ThreadPoolExecutor(max_workers=max(len(cfgs), 1)) as pool:
+        futures = {
+            pool.submit(fetch_webinar_closer, c, start_ms, end_ms, 20, today_str, tomorrow_str): c
+            for c in cfgs
+        }
+        for future in as_completed(futures):
+            results.append(future.result())
+
+    results.sort(key=lambda r: r["name"])
+
+    return jsonify({
+        "closers":       results,
+        "today_label":   today.strftime("%A, %b %-d"),
+        "tomorrow_label": tomorrow.strftime("%A, %b %-d"),
+        "tonight_note":  "Slots from 8:00 PM EDT onward",
+        "updated_at":    datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+    })
+
+
+@app.route("/webinar-availability")
+def webinar_dashboard():
+    return send_file(os.path.join(ROOT, "webinar.html"))
 
 
 if __name__ == "__main__":
