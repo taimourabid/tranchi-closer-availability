@@ -132,8 +132,11 @@ _team_cache      = {"ids": None, "expires": 0.0}
 _cache_lock      = threading.Lock()
 _cal_hours_cache = {}          # cal_id → (expires_ts, result_tuple)
 _cal_hours_lock  = threading.Lock()
-_webinar_cache   = {"ids": None, "expires": 0.0}
-_webinar_lock    = threading.Lock()
+_webinar_cache        = {"ids": None, "expires": 0.0}
+_webinar_lock         = threading.Lock()
+_webinar_slots_cache  = {"data": None, "expires": 0.0}
+_webinar_slots_lock   = threading.Lock()
+WEBINAR_SLOTS_TTL     = 300  # 5 minutes
 
 
 def get_team_user_ids():
@@ -623,13 +626,21 @@ def fetch_webinar_closer(cfg, start_ms, end_ms, tonight_cutoff_h, today_str, tom
 
 @app.route("/api/webinar-availability")
 def api_webinar_availability():
-    now_edt   = datetime.now(EDT)
-    today     = now_edt.replace(hour=0, minute=0, second=0, microsecond=0)
-    tomorrow  = today + timedelta(days=1)
+    now_ts  = datetime.utcnow().timestamp()
+    now_edt = datetime.now(EDT)
+    today   = now_edt.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    start_ms  = int(today.timestamp() * 1000)
-    end_ms    = int((tomorrow + timedelta(days=1)).timestamp() * 1000)
+    # Return cached payload if still fresh AND it's for today's date
+    with _webinar_slots_lock:
+        cached = _webinar_slots_cache["data"]
+        if (cached is not None
+                and now_ts < _webinar_slots_cache["expires"]
+                and cached.get("today_label") == today.strftime("%A, %b %-d")):
+            return jsonify(cached)
 
+    tomorrow     = today + timedelta(days=1)
+    start_ms     = int(today.timestamp() * 1000)
+    end_ms       = int((tomorrow + timedelta(days=1)).timestamp() * 1000)
     today_str    = today.strftime("%Y-%m-%d")
     tomorrow_str = tomorrow.strftime("%Y-%m-%d")
 
@@ -643,13 +654,30 @@ def api_webinar_availability():
 
     results.sort(key=lambda r: r["name"])
 
-    return jsonify({
+    payload = {
         "closers":        results,
         "today_label":    today.strftime("%A, %b %-d"),
         "tomorrow_label": tomorrow.strftime("%A, %b %-d"),
         "tonight_note":   "Slots from 8:00 PM EDT onward",
         "updated_at":     datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
-    })
+    }
+
+    with _webinar_slots_lock:
+        _webinar_slots_cache["data"]    = payload
+        _webinar_slots_cache["expires"] = now_ts + WEBINAR_SLOTS_TTL
+
+    return jsonify(payload)
+
+
+@app.route("/api/webinar-refresh", methods=["POST", "GET"])
+def api_webinar_refresh():
+    with _webinar_slots_lock:
+        _webinar_slots_cache["data"]    = None
+        _webinar_slots_cache["expires"] = 0.0
+    with _webinar_lock:
+        _webinar_cache["ids"]     = None
+        _webinar_cache["expires"] = 0.0
+    return jsonify({"ok": True, "message": "Cache cleared — next load will fetch fresh data."})
 
 
 @app.route("/webinar-availability")

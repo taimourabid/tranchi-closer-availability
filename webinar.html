@@ -147,6 +147,7 @@
       <span class="meta-chip" id="tonightLabel">—</span>
       <span class="meta-chip" id="tomorrowLabel">—</span>
       <span class="meta-chip">Updated: <strong id="updatedAt">—</strong></span>
+      <button id="refreshBtn" onclick="forceRefresh()" style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:5px 14px;font-size:13px;color:#475569;font-weight:600;cursor:pointer;">&#8635; Refresh</button>
     </div>
   </div>
 
@@ -247,6 +248,19 @@ async function loadData() {
   `).join('');
 
   document.getElementById('mainContent').innerHTML = rows || '<div class="loading">No closers found.</div>';
+}
+
+async function forceRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  btn.textContent = '⏳ Refreshing…';
+  btn.disabled = true;
+  try {
+    await fetch('/api/webinar-refresh');
+    await loadData();
+  } finally {
+    btn.textContent = '↻ Refresh';
+    btn.disabled = false;
+  }
 }
 
 loadData();
