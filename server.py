@@ -565,29 +565,34 @@ def get_webinar_user_ids():
     return ids
 
 
+def _ghl_free_slots(cal_id, start_ms, end_ms, user_id=None, retries=2):
+    """Call GHL free-slots with automatic retry on empty/failed responses."""
+    params = {"startDate": start_ms, "endDate": end_ms, "timezone": "America/New_York"}
+    if user_id:
+        params["userId"] = user_id
+    for attempt in range(retries + 1):
+        try:
+            r = requests.get(f"{BASE}/calendars/{cal_id}/free-slots",
+                             headers=H, params=params, timeout=20)
+            data = r.json()
+            # If we got actual slot keys (dates), it's a real response
+            if any(k.startswith("20") for k in data):
+                return data
+        except Exception:
+            pass
+        if attempt < retries:
+            import time; time.sleep(0.3 * (attempt + 1))
+    return {}
+
+
 def fetch_webinar_closer(cfg, start_ms, end_ms, tonight_cutoff_h, today_str, tomorrow_str):
     """
-    Fetch per-user availability on the webinar calendar using GHL's userId filter,
-    which intersects the user's individual calendar working hours with the webinar
-    calendar's slot pool — giving correct per-closer availability without round-robin noise.
+    Query the webinar calendar with userId. The webinar calendar has its own
+    evening schedule (openHours not exposed in API) — individual calendars
+    don't have those hours so we must use the webinar cal directly.
+    Sequential calls (no parallel) prevent GHL rate-limit drops.
     """
-    user_id = cfg["user_id"]
-
-    try:
-        r = requests.get(
-            f"{BASE}/calendars/{WEBINAR_CAL}/free-slots",
-            headers=H,
-            params={
-                "startDate": start_ms,
-                "endDate":   end_ms,
-                "timezone":  "America/New_York",
-                "userId":    user_id,
-            },
-            timeout=15,
-        )
-        data = r.json()
-    except Exception:
-        data = {}
+    data = _ghl_free_slots(WEBINAR_CAL, start_ms, end_ms, user_id=cfg["user_id"])
 
     def fmt(slot_iso):
         try:
@@ -633,13 +638,8 @@ def api_webinar_availability():
     cfgs.sort(key=lambda c: c["name"])
 
     results = []
-    with ThreadPoolExecutor(max_workers=max(len(cfgs), 1)) as pool:
-        futures = {
-            pool.submit(fetch_webinar_closer, c, start_ms, end_ms, 20, today_str, tomorrow_str): c
-            for c in cfgs
-        }
-        for future in as_completed(futures):
-            results.append(future.result())
+    for cfg in cfgs:
+        results.append(fetch_webinar_closer(cfg, start_ms, end_ms, 20, today_str, tomorrow_str))
 
     results.sort(key=lambda r: r["name"])
 
