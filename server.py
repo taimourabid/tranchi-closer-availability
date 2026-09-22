@@ -565,46 +565,60 @@ def get_webinar_user_ids():
     return ids
 
 
-def fetch_webinar_closer(cfg, start_ms, end_ms, tonight_cutoff_h, today_str, tomorrow_str):
-    """Fetch today's post-8pm and tomorrow's all slots for one closer from the webinar calendar."""
-    user_id = cfg["user_id"]
+def fetch_webinar_closer(cfg, all_slots, start_ms, end_ms, tonight_cutoff_h, today_str, tomorrow_str):
+    """
+    Determine a closer's available webinar slots by taking the full slot pool
+    and removing any that overlap with their existing booked appointments.
+    This is correct for round-robin calendars where userId free-slots only
+    returns the slots assigned to that user in the rotation, not their real availability.
+    """
+    user_id  = cfg["user_id"]
+    SLOT_DUR = timedelta(minutes=45)
+    ACTIVE   = {"confirmed", "scheduled", "new"}
 
+    # Fetch this user's booked appointments across all calendars
+    booked_dts = []
     try:
         r = requests.get(
-            f"{BASE}/calendars/{WEBINAR_CAL}/free-slots",
-            headers=H,
-            params={
-                "startDate": start_ms,
-                "endDate":   end_ms,
-                "timezone":  "America/New_York",
-                "userId":    user_id,
-            },
+            f"{BASE}/calendars/events", headers=H,
+            params={"startTime": start_ms, "endTime": end_ms,
+                    "userId": user_id, "locationId": LOC_ID},
             timeout=15,
         )
-        data = r.json()
+        for e in r.json().get("events", []):
+            if e.get("appointmentStatus") in ACTIVE:
+                try:
+                    booked_dts.append(datetime.fromisoformat(e["startTime"]))
+                except Exception:
+                    pass
     except Exception:
-        data = {}
+        pass
 
-    def fmt_slot(s):
+    def is_free(slot_iso):
         try:
-            dt = datetime.fromisoformat(s).astimezone(EDT)
-            return dt.strftime("%-I:%M %p")
+            s_dt  = datetime.fromisoformat(slot_iso)
+            s_end = s_dt + SLOT_DUR
+            return not any(s_dt < b + SLOT_DUR and b < s_end for b in booked_dts)
         except Exception:
-            return s
+            return True
 
-    today_raw    = data.get(today_str, {}).get("slots", [])
-    tomorrow_raw = data.get(tomorrow_str, {}).get("slots", [])
+    def fmt(slot_iso):
+        return datetime.fromisoformat(slot_iso).astimezone(EDT).strftime("%-I:%M %p")
 
-    tonight_slots = []
-    for s in today_raw:
+    tonight_slots  = []
+    tomorrow_slots = []
+
+    for s in all_slots.get(today_str, []):
         try:
             dt = datetime.fromisoformat(s).astimezone(EDT)
-            if dt.hour >= tonight_cutoff_h:
-                tonight_slots.append(fmt_slot(s))
+            if dt.hour >= tonight_cutoff_h and is_free(s):
+                tonight_slots.append(fmt(s))
         except Exception:
             pass
 
-    tomorrow_slots = [fmt_slot(s) for s in tomorrow_raw]
+    for s in all_slots.get(tomorrow_str, []):
+        if is_free(s):
+            tomorrow_slots.append(fmt(s))
 
     return {
         "name":           cfg["name"],
@@ -628,6 +642,20 @@ def api_webinar_availability():
     today_str    = today.strftime("%Y-%m-%d")
     tomorrow_str = tomorrow.strftime("%Y-%m-%d")
 
+    # Fetch the full webinar slot pool once (no userId → all available slots)
+    all_slots = {}
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/{WEBINAR_CAL}/free-slots", headers=H,
+            params={"startDate": start_ms, "endDate": end_ms, "timezone": "America/New_York"},
+            timeout=15,
+        )
+        raw = r.json()
+        all_slots[today_str]    = raw.get(today_str,    {}).get("slots", [])
+        all_slots[tomorrow_str] = raw.get(tomorrow_str, {}).get("slots", [])
+    except Exception:
+        pass
+
     team_ids = get_webinar_user_ids()
     cfgs     = [resolve_closer_cfg(uid) for uid in team_ids]
     cfgs.sort(key=lambda c: c["name"])
@@ -635,7 +663,7 @@ def api_webinar_availability():
     results = []
     with ThreadPoolExecutor(max_workers=max(len(cfgs), 1)) as pool:
         futures = {
-            pool.submit(fetch_webinar_closer, c, start_ms, end_ms, 20, today_str, tomorrow_str): c
+            pool.submit(fetch_webinar_closer, c, all_slots, start_ms, end_ms, 20, today_str, tomorrow_str): c
             for c in cfgs
         }
         for future in as_completed(futures):
@@ -644,11 +672,11 @@ def api_webinar_availability():
     results.sort(key=lambda r: r["name"])
 
     return jsonify({
-        "closers":       results,
-        "today_label":   today.strftime("%A, %b %-d"),
+        "closers":        results,
+        "today_label":    today.strftime("%A, %b %-d"),
         "tomorrow_label": tomorrow.strftime("%A, %b %-d"),
-        "tonight_note":  "Slots from 8:00 PM EDT onward",
-        "updated_at":    datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "tonight_note":   "Slots from 8:00 PM EDT onward",
+        "updated_at":     datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     })
 
 
