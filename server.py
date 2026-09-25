@@ -44,12 +44,6 @@ CLOSER_CONFIG = {
         "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
         "off_weekdays": [6],
     },
-    "kBuLVdKzAcockWIITfPi": {
-        "name": "Jang Kim", "first": "Jang",
-        "cal_id": "VH7Dfgfoyq13dASbjKKP", "tz_label": "PDT",
-        "capacity": 6, "work_range": "11:30 AM – 5:30 PM PDT",
-        "off_weekdays": [4, 5, 6],
-    },
     "hQqYUjAsLphmPaVxh27l": {
         "name": "Lee Johnson", "first": "Lee",
         "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
