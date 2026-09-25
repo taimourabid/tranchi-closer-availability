@@ -47,7 +47,7 @@ CLOSER_CONFIG = {
     "hQqYUjAsLphmPaVxh27l": {
         "name": "Lee Johnson", "first": "Lee",
         "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
-        "capacity": 5, "work_range": "9:00 AM – 1:15 PM MDT",
+        "capacity": 8, "work_range": "9:00 AM – 3:00 PM MDT",
         "off_weekdays": [5, 6],
     },
     "MAnZbUiIBpBnDL8OM8PQ": {
