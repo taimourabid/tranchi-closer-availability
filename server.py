@@ -27,100 +27,88 @@ GHL_TO_PY = {0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
 CLOSER_CONFIG = {
     "djt6k0JScB4euA8dl5Vv": {
         "name": "Alyssa Bralich", "first": "Alyssa",
-        "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PDT",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM PDT",
+        "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PST",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM PST",
         "off_weekdays": [5, 6],
     },
     "tQ4trl3utKYHvxuLwN3u": {
         "name": "Caden Church", "first": "Caden",
-        "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PDT",
-        "capacity": 8, "work_range": "3:30 PM – 9:30 PM PDT",
-        "day_ranges": {2: "3:30 PM – 5:00 PM PDT", 4: "10:00 AM – 3:00 PM PDT", 5: "10:00 AM – 3:00 PM PDT"},
-        "off_weekdays": [6],
+        "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PST",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM PST",
+        "off_weekdays": [5, 6],
     },
     "CdLTuSPvDCbQBbJ6foHM": {
         "name": "Cade Pepin", "first": "Cade",
-        "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EDT",
-        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
+        "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EST",
+        "capacity": 8, "work_range": "10:00 AM – 5:00 PM EST",
         "off_weekdays": [6],
     },
     "hQqYUjAsLphmPaVxh27l": {
         "name": "Lee Johnson", "first": "Lee",
-        "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MDT",
-        "capacity": 8, "work_range": "9:00 AM – 3:00 PM MDT",
+        "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MST",
+        "capacity": 8, "work_range": "9:00 AM – 3:00 PM MST",
         "off_weekdays": [5, 6],
     },
     "MAnZbUiIBpBnDL8OM8PQ": {
         "name": "Harry", "first": "Harry",
-        "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EDT",
-        "capacity": 8, "work_range": "10:45 AM – 5:00 PM EDT",
-        "day_ranges": {6: "7:00 AM – 1:00 PM EDT", 4: "7:45 AM – 2:00 PM EDT", 5: "7:45 AM – 5:00 PM EDT"},
-        "off_weekdays": [0],
+        "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EST",
+        "capacity": 8, "work_range": "7:00 AM – 2:00 PM EST",
+        "off_weekdays": [0, 1],
     },
     "MJEiaehaH7xeXndSvauP": {
         "name": "Amir", "first": "Amir",
-        "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EST",
+        "capacity": 8, "work_range": "11:00 AM – 6:00 PM EST",
         "day_ranges": {
-            6: "4:00 PM – 10:00 PM EDT",   # Sun
-            0: "6:00 PM – 12:00 AM EDT",   # Mon
-            1: "6:00 PM – 12:00 AM EDT",   # Tue
-            3: "8:00 PM – 12:00 AM EDT",   # Thu
-            4: "2:00 PM – 8:00 PM EDT",    # Fri
+            6: "4:00 PM – 10:00 PM EST",   # Sun
+            0: "6:00 PM – 12:00 AM EST",   # Mon
+            1: "6:00 PM – 12:00 AM EST",   # Tue
+            3: "8:00 PM – 12:00 AM EST",   # Thu
+            4: "2:00 PM – 8:00 PM EST",    # Fri
         },
         "off_weekdays": [5],
     },
     "lRRjsbYBPoZ1ppLD4Fw1": {
         "name": "Avery", "first": "Avery",
-        "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EDT",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-        "day_ranges": {6: "11:00 AM – 4:00 PM EDT", 4: "11:00 AM – 6:00 PM EDT"},
+        "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EST",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EST",
         "off_weekdays": [0, 1],
     },
     "NJnJKQea7HhOm43pwAX9": {
         "name": "Peter Godwin", "first": "Peter",
-        "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EDT",
-        "capacity": 6, "work_range": "7:00 AM – 10:00 PM EDT",
-        "day_ranges": {3: "7:00 AM – 6:00 PM EDT", 5: "10:00 AM – 7:00 PM EDT"},
+        "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EST",
+        "capacity": 8, "work_range": "11:00 AM – 6:00 PM EST",
         "off_weekdays": [6],
     },
     "qt3nCz8rsQvTCFeDrNCE": {
         "name": "Amirah Adel", "first": "Amirah",
-        "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "BST",
-        "capacity": 8, "work_range": "3:00 PM – 10:00 PM BST",
+        "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "PST",
+        "capacity": 8, "work_range": "9:00 AM – 5:00 PM PST",
         "off_weekdays": [0, 1],
     },
     "k9PJ9X296OSPiuYlwSJL": {
         "name": "Adam Kuperman", "first": "Adam",
-        "cal_id": "g0JUmlXjHuafdO3avoem", "tz_label": "EDT",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-        "off_weekdays": [5, 6],
+        "cal_id": "g0JUmlXjHuafdO3avoem", "tz_label": "EST",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EST",
+        "off_weekdays": [0, 1],
     },
     "Kom4DBd4cfmGKyCtxdUl": {
         "name": "Alexander N", "first": "Alexander",
-        "cal_id": "fwq8ZGR0f24x2yJgiFWz", "tz_label": "EDT",
-        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
-        "day_ranges": {4: "10:00 AM – 4:00 PM EDT"},
+        "cal_id": "fwq8ZGR0f24x2yJgiFWz", "tz_label": "EST",
+        "capacity": 8, "work_range": "3:00 PM – 9:00 PM EST",
         "off_weekdays": [5, 6],
     },
     "fYOGA6Qx7ePCSyj4OHoK": {
         "name": "Tate Zablotny", "first": "Tate",
-        "cal_id": "4f3Fqo5B9tNDtW6JeETf", "tz_label": "EDT",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EDT",
-        "day_ranges": {6: "11:00 AM – 6:00 PM EDT"},
-        "off_weekdays": [],
+        "cal_id": "4f3Fqo5B9tNDtW6JeETf", "tz_label": "EST",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
+        "off_weekdays": [6],
     },
     "0QXG4WmuozFII9i4qgax": {
         "name": "Caleb Rice", "first": "Caleb",
-        "cal_id": "clKTuP4p0g2pFxj4Dp4V", "tz_label": "EDT",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
+        "cal_id": "clKTuP4p0g2pFxj4Dp4V", "tz_label": "EST",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
         "off_weekdays": [1],
-    },
-    "04HxeHctHNWK1HzrzvKA": {
-        "name": "Kera Beattie", "first": "Kera",
-        "cal_id": "77YwGuoYftp4A09avPUK", "tz_label": "EDT",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EDT",
-        "off_weekdays": [6],
     },
 }
 
