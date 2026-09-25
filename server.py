@@ -61,7 +61,13 @@ CLOSER_CONFIG = {
         "name": "Amir", "first": "Amir",
         "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EDT",
         "capacity": 8, "work_range": "11:00 AM – 5:00 PM EDT",
-        "day_ranges": {6: "11:00 AM – 3:00 PM EDT", 0: "5:00 PM – 12:00 AM EDT", 1: "5:30 PM – 12:00 AM EDT", 3: "8:00 AM – 10:00 AM EDT"},
+        "day_ranges": {
+            6: "4:00 PM – 10:00 PM EDT",   # Sun
+            0: "6:00 PM – 12:00 AM EDT",   # Mon
+            1: "6:00 PM – 12:00 AM EDT",   # Tue
+            3: "8:00 PM – 12:00 AM EDT",   # Thu
+            4: "2:00 PM – 8:00 PM EDT",    # Fri
+        },
         "off_weekdays": [5],
     },
     "lRRjsbYBPoZ1ppLD4Fw1": {
