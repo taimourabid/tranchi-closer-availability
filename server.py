@@ -110,6 +110,12 @@ CLOSER_CONFIG = {
         "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
         "off_weekdays": [1],
     },
+    "L3QuZWoLHezJks67v4F3": {
+        "name": "Taha Qureshi", "first": "Taha",
+        "cal_id": "v6xmzXV7EqyKRCqwO1Rd", "tz_label": "EST",
+        "capacity": 8, "work_range": "8:00 AM – 3:00 PM EST",
+        "off_weekdays": [5],
+    },
 }
 
 # Display order for known closers; new team members appear after these.
