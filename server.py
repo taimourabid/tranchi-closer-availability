@@ -116,6 +116,12 @@ CLOSER_CONFIG = {
         "capacity": 8, "work_range": "8:00 AM – 3:00 PM EST",
         "off_weekdays": [5],
     },
+    "3My1VQIb4DYa6cg9XVSb": {
+        "name": "Max Flynn", "first": "Max",
+        "cal_id": "Z3C9JPytY84lnYBACvWJ", "tz_label": "EST",
+        "capacity": 8, "work_range": "7:00 AM – 1:00 PM EST",
+        "off_weekdays": [5, 6],
+    },
 }
 
 # Display order for known closers; new team members appear after these.
