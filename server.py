@@ -144,6 +144,30 @@ CLOSER_CONFIG = {
             5: "10:00 AM – 4:00 PM EST",   # Sat
         },
     },
+    "TGcnIzE8QkZGtAPWdMeN": {
+        "name": "George Larsen", "first": "George",
+        "cal_id": "F9PSclTSoIhKd3bs2uRE", "tz_label": "PDT",
+        "capacity": 8, "work_range": "9:00 AM – 10:00 PM PDT",
+        "off_weekdays": [5, 6],
+    },
+    "tCkx14oMoGAaVkjcWU4e": {
+        "name": "Alexandra Tranchi", "first": "Alexandra",
+        "cal_id": "S5hcBdUt8C8yqguanKD4", "tz_label": "EDT",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
+        "off_weekdays": [5, 6],
+    },
+    "xdu1xcDnP3mHQLl8tlW3": {
+        "name": "Irena Tranchi", "first": "Irena",
+        "cal_id": "Y9sUYIbNKpvjRxE8xU0e", "tz_label": "CDT",
+        "capacity": 8, "work_range": "11:00 AM – 5:00 PM CDT",
+        "off_weekdays": [5, 6],
+    },
+    "bbkHcYD2A7pwP5RvPhfX": {
+        "name": "Michael Hilgeman", "first": "Michael",
+        "cal_id": "StLLqcIxcWxhIpSsTkxY", "tz_label": "PDT",
+        "capacity": 8, "work_range": "2:00 PM – 11:00 PM PDT",
+        "off_weekdays": [6],
+    },
 }
 
 # Display order for known closers; new team members appear after these.
