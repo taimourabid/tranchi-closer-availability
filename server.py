@@ -165,7 +165,7 @@ CLOSER_CONFIG = {
     "bbkHcYD2A7pwP5RvPhfX": {
         "name": "Michael Hilgeman", "first": "Michael",
         "cal_id": "StLLqcIxcWxhIpSsTkxY", "tz_label": "PDT",
-        "capacity": 8, "work_range": "2:00 PM – 11:00 PM PDT",
+        "capacity": 8, "work_range": "12:00 PM – 8:00 PM PDT",
         "off_weekdays": [6],
     },
 }
