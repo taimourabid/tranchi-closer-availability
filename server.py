@@ -158,8 +158,8 @@ CLOSER_CONFIG = {
     },
     "xdu1xcDnP3mHQLl8tlW3": {
         "name": "Irena Tranchi", "first": "Irena",
-        "cal_id": "Y9sUYIbNKpvjRxE8xU0e", "tz_label": "CDT",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM CDT",
+        "cal_id": "Y9sUYIbNKpvjRxE8xU0e", "tz_label": "EDT",
+        "capacity": 8, "work_range": "7:00 AM – 1:00 PM EDT",
         "off_weekdays": [5, 6],
     },
     "bbkHcYD2A7pwP5RvPhfX": {
