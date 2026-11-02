@@ -572,6 +572,124 @@ def api_closer_availability():
     })
 
 
+@app.route("/api/closer-debug/<user_id_or_name>")
+def api_closer_debug(user_id_or_name):
+    """
+    Diagnostic endpoint: returns raw GHL data for one closer.
+    Accept either a GHL userId or a partial name match (case-insensitive).
+    Example: /api/closer-debug/Michael  or  /api/closer-debug/bbkHcYD2A7pwP5RvPhfX
+    """
+    # Resolve to a config entry
+    key = user_id_or_name.strip()
+    cfg = None
+    if key in CLOSER_CONFIG:
+        cfg = dict(CLOSER_CONFIG[key])
+        cfg["user_id"] = key
+    else:
+        key_lower = key.lower()
+        for uid, c in CLOSER_CONFIG.items():
+            if key_lower in c["name"].lower():
+                cfg = dict(c)
+                cfg["user_id"] = uid
+                break
+
+    if cfg is None:
+        return jsonify({"error": f"No closer matching '{user_id_or_name}'"}), 404
+
+    user_id = cfg["user_id"]
+    cal_id  = cfg.get("cal_id", "")
+
+    now_la   = datetime.now(LA)
+    start    = now_la.replace(hour=0, minute=0, second=0, microsecond=0)
+    end      = start + timedelta(days=6, hours=23, minutes=59, seconds=59)
+    start_ms = int(start.timestamp() * 1000)
+    end_ms   = int(end.timestamp()   * 1000)
+
+    result = {
+        "closer":     cfg["name"],
+        "user_id":    user_id,
+        "cal_id":     cal_id,
+        "window":     f"{start.strftime('%Y-%m-%d')} – {end.strftime('%Y-%m-%d')} LA",
+        "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+    }
+
+    # 1. GHL calendar openHours
+    try:
+        r = requests.get(f"{BASE}/calendars/{cal_id}", headers=H, timeout=10)
+        cal_data = r.json().get("calendar", r.json())
+        open_hours = cal_data.get("openHours", [])
+        result["ghl_open_hours_entries"] = len(open_hours)
+        result["ghl_open_hours"] = open_hours
+    except Exception as e:
+        result["ghl_open_hours_error"] = str(e)
+
+    # 2. Team calendar free slots
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/{TEAM_CAL}/free-slots", headers=H,
+            params={"startDate": start_ms, "endDate": end_ms,
+                    "timezone": "America/Los_Angeles", "userId": user_id},
+            timeout=15)
+        team_slots = {k: len(v.get("slots", [])) for k, v in r.json().items()
+                      if k != "traceId" and isinstance(v, dict)}
+        result["team_cal_slots_by_day"] = team_slots
+        result["team_cal_total"] = sum(team_slots.values())
+    except Exception as e:
+        result["team_cal_error"] = str(e)
+
+    # 3. Individual calendar free slots
+    if cal_id:
+        try:
+            r = requests.get(
+                f"{BASE}/calendars/{cal_id}/free-slots", headers=H,
+                params={"startDate": start_ms, "endDate": end_ms,
+                        "timezone": "America/Los_Angeles"},
+                timeout=15)
+            ind_slots = {k: len(v.get("slots", [])) for k, v in r.json().items()
+                         if k != "traceId" and isinstance(v, dict)}
+            result["ind_cal_slots_by_day"] = ind_slots
+            result["ind_cal_total"] = sum(ind_slots.values())
+        except Exception as e:
+            result["ind_cal_error"] = str(e)
+
+    # 4. Appointments this week (all statuses)
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/events", headers=H,
+            params={"startTime": start_ms, "endTime": end_ms,
+                    "userId": user_id, "locationId": LOC_ID},
+            timeout=15)
+        events = r.json().get("events", [])
+        by_day = {}
+        for e in events:
+            d   = e.get("startTime", "")[:10]
+            st  = e.get("appointmentStatus", "unknown")
+            by_day.setdefault(d, {}).setdefault(st, 0)
+            by_day[d][st] += 1
+        result["appointments_by_day"] = by_day
+        result["appointments_total"]  = len(events)
+    except Exception as e:
+        result["appointments_error"] = str(e)
+
+    # 5. Manual blocks this week
+    try:
+        r = requests.get(
+            f"{BASE}/calendars/blocked-slots", headers=H,
+            params={"startTime": start_ms, "endTime": end_ms,
+                    "userId": user_id, "locationId": LOC_ID},
+            timeout=15)
+        blocks = r.json().get("events", [])
+        result["manual_blocks"] = [
+            {"start": e.get("startTime"), "end": e.get("endTime"),
+             "title": e.get("title"), "source": e.get("createdBy", {}).get("source")}
+            for e in blocks
+        ]
+    except Exception as e:
+        result["manual_blocks_error"] = str(e)
+
+    return jsonify(result)
+
+
 @app.route("/closer-availability")
 def dashboard():
     return send_file(os.path.join(ROOT, "index.html"))
