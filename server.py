@@ -334,29 +334,36 @@ def fetch_closer(cfg, start, start_ms, end_ms):
     appts_raw  = {}   # date → booked appointment count
     blocks_raw = set()  # dates with a manual "blocked" entry
 
+    def _fetch_slots(url, params, retries=2):
+        """GET free-slots with retry when GHL returns only a traceId (throttled)."""
+        import time as _time
+        for attempt in range(retries + 1):
+            try:
+                r = requests.get(url, headers=H, params=params, timeout=15)
+                data = r.json()
+                if any(k.startswith("20") for k in data):
+                    return data
+            except Exception:
+                pass
+            if attempt < retries:
+                _time.sleep(0.4 * (attempt + 1))
+        return {}
+
     def _team():
-        try:
-            r = requests.get(
-                f"{BASE}/calendars/{TEAM_CAL}/free-slots", headers=H,
-                params={"startDate": start_ms, "endDate": end_ms,
-                        "timezone": "America/Los_Angeles", "userId": user_id},
-                timeout=15)
-            return r.json()
-        except Exception:
-            return {}
+        return _fetch_slots(
+            f"{BASE}/calendars/{TEAM_CAL}/free-slots",
+            {"startDate": start_ms, "endDate": end_ms,
+             "timezone": "America/Los_Angeles", "userId": user_id},
+        )
 
     def _ind():
         if not cal_id:
             return {}
-        try:
-            r = requests.get(
-                f"{BASE}/calendars/{cal_id}/free-slots", headers=H,
-                params={"startDate": start_ms, "endDate": end_ms,
-                        "timezone": "America/Los_Angeles"},
-                timeout=15)
-            return r.json()
-        except Exception:
-            return {}
+        return _fetch_slots(
+            f"{BASE}/calendars/{cal_id}/free-slots",
+            {"startDate": start_ms, "endDate": end_ms,
+             "timezone": "America/Los_Angeles"},
+        )
 
     def _appts():
         # Query by userId (not calendarId) — bookings go through the team calendar,
@@ -550,7 +557,7 @@ def api_closer_availability():
     cfgs.sort(key=lambda c: (order_idx.get(c["user_id"], len(CLOSER_ORDER)), c["name"]))
 
     results_map = {}
-    with ThreadPoolExecutor(max_workers=max(len(cfgs), 1)) as pool:
+    with ThreadPoolExecutor(max_workers=min(len(cfgs), 6)) as pool:
         futures = {pool.submit(fetch_closer, c, start, start_ms, end_ms): c for c in cfgs}
         for future in as_completed(futures):
             cfg, days = future.result()
