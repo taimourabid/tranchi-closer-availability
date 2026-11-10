@@ -217,15 +217,91 @@ CLOSER_CONFIG = {
             5: "12:15 PM – 8:00 PM PST",  # Sat
         },
     },
-    # ── Pending GHL user IDs — add cal_id + userId once known ─────────────────
-    # Ryan       EST  split: 9–12 PM & 3–9 PM Mon–Fri, Sat 9:15–1:00 PM, Sun off
-    # Amaan      EST  Mon/Tue 9–5, Wed–Sat 9:15–5:30 PM, Sun off
-    # Deepak     EST  split shifts daily (complex), works all 7 days
-    # Micah      PST  Mon 11:15–4:30, Tue 9:45–3:45, Wed–Fri 10–4, Sat/Sun off
-    # Macaela    CST  Mon/Tue 11–5, Wed 12–6, Thu/Fri/Sat 11:15–5:15, Sun off
-    # Mark       EST  Mon/Tue 11:15–5:15, Wed–Fri 10:45–5, Sat/Sun off
-    # Marc       PST  Mon/Tue 1:30–6, Wed–Fri 1–6 PM, Sat/Sun off
-    # Alex Wheeler EST Mon/Tue 9:45–3:45, Wed–Fri 10–4 PM, Sat/Sun off
+    "ITCRNQf4VVVoYXbSq1mS": {
+        "name": "Ryan Zach", "first": "Ryan",
+        "cal_id": "oV5z2L7vWg6yzapBo30c", "tz_label": "EST",
+        "capacity": 8, "work_range": "9:15 AM – 9:15 PM EST",
+        "off_weekdays": [6],
+        "day_ranges": {
+            0: "9:00 AM – 9:00 PM EST",   # Mon
+            1: "9:00 AM – 9:00 PM EST",   # Tue
+            5: "9:15 AM – 1:00 PM EST",   # Sat
+        },
+    },
+    "OUUBWzZHu84UL483kJCg": {
+        "name": "Amaan Tranchi", "first": "Amaan",
+        "cal_id": "D07gNBtGWwn165s0qkdc", "tz_label": "EST",
+        "capacity": 8, "work_range": "9:15 AM – 5:30 PM EST",
+        "off_weekdays": [6],
+        "day_ranges": {
+            0: "9:00 AM – 5:00 PM EST",   # Mon
+            1: "9:00 AM – 5:00 PM EST",   # Tue
+        },
+    },
+    "VTEKKLwp8nl97mcPjRHB": {
+        "name": "Deepak Tranchi", "first": "Deepak",
+        "cal_id": "dKW4Gbs1aEhi5lGunOYK", "tz_label": "EST",
+        "capacity": 8, "work_range": "1:00 PM – 7:45 PM EST",
+        "off_weekdays": [],
+        "day_ranges": {
+            0: "10:30 AM – 8:15 PM EST",  # Mon
+            1: "12:00 PM – 8:15 PM EST",  # Tue
+            2: "3:15 PM – 8:00 PM EST",   # Wed
+            3: "12:15 PM – 7:45 PM EST",  # Thu
+            4: "1:45 PM – 7:45 PM EST",   # Fri
+        },
+    },
+    "7K8hWSqWMmzKuNEuhF9J": {
+        "name": "Micah Tranchi", "first": "Micah",
+        "cal_id": "MklBBA6z4I8Mhh5mZThr", "tz_label": "PST",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM PST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "11:15 AM – 4:30 PM PST",  # Mon
+            1: "9:45 AM – 3:45 PM PST",   # Tue
+        },
+    },
+    "D3vcAqRTy4knNE4z8U0M": {
+        "name": "Macaela Tranchi", "first": "Macaela",
+        "cal_id": "Puc1Tpg4AI22oO5rirGZ", "tz_label": "CST",
+        "capacity": 8, "work_range": "11:15 AM – 5:15 PM CST",
+        "off_weekdays": [6],
+        "day_ranges": {
+            0: "11:00 AM – 5:00 PM CST",  # Mon
+            1: "11:00 AM – 5:00 PM CST",  # Tue
+            2: "12:00 PM – 6:00 PM CST",  # Wed
+        },
+    },
+    "ci6R1tRHjTJbYr9J046P": {
+        "name": "Mark Goodin", "first": "Mark",
+        "cal_id": "6F1wwBeCUEFmmo43Sywx", "tz_label": "EST",
+        "capacity": 8, "work_range": "10:45 AM – 5:00 PM EST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "11:15 AM – 5:15 PM EST",  # Mon
+            1: "11:15 AM – 5:15 PM EST",  # Tue
+        },
+    },
+    "yyzKQkTQxd3Sx3I4KzQx": {
+        "name": "Marc Coloma", "first": "Marc",
+        "cal_id": "1rhNvCSBnOikFJ91KN7w", "tz_label": "PST",
+        "capacity": 8, "work_range": "1:00 PM – 6:00 PM PST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "1:30 PM – 6:00 PM PST",   # Mon
+            1: "1:30 PM – 6:00 PM PST",   # Tue
+        },
+    },
+    "6qhQEaHAmRS8SfXeYpNl": {
+        "name": "Alex Wheeler", "first": "Alex",
+        "cal_id": "sGvmUKiYgCIdb6db4SgD", "tz_label": "EST",
+        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "9:45 AM – 3:45 PM EST",   # Mon
+            1: "9:45 AM – 3:45 PM EST",   # Tue
+        },
+    },
 }
 
 # Display order for known closers; new team members appear after these.
