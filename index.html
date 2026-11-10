@@ -211,7 +211,12 @@
 </div>
 
 <script>
-const TZ_CLASSES = { PDT: 'tz-pdt', EDT: 'tz-edt', MDT: 'tz-mdt', EST: 'tz-est' };
+const TZ_CLASSES = {
+  PDT: 'tz-pdt', PST: 'tz-pdt',
+  EDT: 'tz-edt', EST: 'tz-edt',
+  MDT: 'tz-mdt', MST: 'tz-mdt',
+  CDT: 'tz-est', CST: 'tz-est',
+};
 
 function todayStr() {
   const d = new Date();

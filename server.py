@@ -25,149 +25,207 @@ GHL_TO_PY = {0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
 # When someone joins the team calendar in GHL, they auto-appear on the dashboard.
 # Add their userId here to control tz_label, work_range, capacity, and off days.
 CLOSER_CONFIG = {
+    # ── Active roster ─────────────────────────────────────────────────────────
     "djt6k0JScB4euA8dl5Vv": {
-        "name": "Alyssa Bralich", "first": "Alyssa",
+        "name": "Alyssa Ryan", "first": "Alyssa",
         "cal_id": "GHrJK5waSI8pKD7rScLp", "tz_label": "PST",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM PST",
+        "capacity": 8, "work_range": "9:45 AM – 5:15 PM PST",
         "off_weekdays": [5, 6],
+        "day_ranges": {
+            2: "10:00 AM – 4:45 PM PST",  # Wed
+            3: "10:00 AM – 4:45 PM PST",  # Thu
+            4: "10:00 AM – 4:45 PM PST",  # Fri
+        },
     },
     "tQ4trl3utKYHvxuLwN3u": {
         "name": "Caden Church", "first": "Caden",
-        "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "PST",
-        "capacity": 8, "work_range": "12:00 PM – 6:00 PM PST",
-        "off_weekdays": [5, 6],
+        "cal_id": "Sn7756eGpQ8OUdYAzdau", "tz_label": "MST",
+        "capacity": 8, "work_range": "8:45 AM – 5:00 PM MST",
+        "off_weekdays": [6],
+        "day_ranges": {
+            0: "12:15 PM – 6:15 PM MST",  # Mon
+            1: "4:00 PM – 10:00 PM MST",  # Tue
+            2: "11:45 AM – 6:00 PM MST",  # Wed
+            3: "3:30 PM – 10:00 PM MST",  # Thu
+        },
     },
     "CdLTuSPvDCbQBbJ6foHM": {
         "name": "Cade Pepin", "first": "Cade",
         "cal_id": "iSttS5Lua4Kxe0d3Tf0g", "tz_label": "EST",
-        "capacity": 8, "work_range": "10:00 AM – 5:00 PM EST",
-        "off_weekdays": [6],
+        "capacity": 8, "work_range": "9:45 AM – 5:15 PM EST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            2: "10:00 AM – 5:00 PM EST",  # Wed
+            3: "10:00 AM – 5:00 PM EST",  # Thu
+            4: "10:00 AM – 5:00 PM EST",  # Fri
+        },
     },
     "hQqYUjAsLphmPaVxh27l": {
         "name": "Lee Johnson", "first": "Lee",
         "cal_id": "T6XXUuO7b3LAH3Be3SQV", "tz_label": "MST",
-        "capacity": 8, "work_range": "9:00 AM – 3:00 PM MST",
+        "capacity": 8, "work_range": "8:45 AM – 5:45 PM MST",
         "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "9:15 AM – 6:15 PM MST",  # Mon
+            1: "9:15 AM – 6:15 PM MST",  # Tue
+            4: "8:45 AM – 4:15 PM MST",  # Fri
+        },
     },
     "MAnZbUiIBpBnDL8OM8PQ": {
         "name": "Harry", "first": "Harry",
         "cal_id": "umLBhJSvoB8LT6Dyea43", "tz_label": "EST",
         "capacity": 8, "work_range": "7:00 AM – 2:00 PM EST",
-        "off_weekdays": [0, 1],
+        "off_weekdays": [],
+        "day_ranges": {
+            0: "7:30 AM – 2:00 PM EST",  # Mon
+            1: "7:30 AM – 2:00 PM EST",  # Tue
+        },
     },
     "MJEiaehaH7xeXndSvauP": {
         "name": "Amir", "first": "Amir",
         "cal_id": "dMRa4fUQFvT5TV0gLgzx", "tz_label": "EST",
-        "capacity": 8, "work_range": "11:00 AM – 6:00 PM EST",
-        "day_ranges": {
-            6: "4:00 PM – 10:00 PM EST",   # Sun
-            0: "6:00 PM – 12:00 AM EST",   # Mon
-            1: "6:00 PM – 12:00 AM EST",   # Tue
-            3: "8:00 PM – 12:00 AM EST",   # Thu
-            4: "2:00 PM – 8:00 PM EST",    # Fri
-        },
+        "capacity": 8, "work_range": "6:00 PM – 12:00 AM EST",
         "off_weekdays": [5],
+        "day_ranges": {
+            2: "1:45 PM – 10:00 PM EST",   # Wed
+            3: "6:15 PM – 12:00 AM EST",   # Thu
+            4: "1:45 PM – 8:00 PM EST",    # Fri
+            6: "4:00 PM – 10:00 PM EST",   # Sun
+        },
     },
     "lRRjsbYBPoZ1ppLD4Fw1": {
         "name": "Avery", "first": "Avery",
         "cal_id": "a9Xf706ORSns9Y7DkqcW", "tz_label": "EST",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EST",
+        "capacity": 8, "work_range": "10:15 AM – 4:45 PM EST",
         "off_weekdays": [0, 1],
     },
     "NJnJKQea7HhOm43pwAX9": {
         "name": "Peter Godwin", "first": "Peter",
         "cal_id": "292oHXCL3jU42br1i4Cn", "tz_label": "EST",
-        "capacity": 8, "work_range": "11:00 AM – 6:00 PM EST",
-        "off_weekdays": [6],
+        "capacity": 8, "work_range": "10:00 AM – 10:00 PM EST",
+        "off_weekdays": [],
+        "day_ranges": {
+            0: "9:45 AM – 6:45 PM EST",   # Mon
+            1: "9:45 AM – 6:45 PM EST",   # Tue
+            4: "10:00 AM – 6:30 PM EST",  # Fri
+            5: "10:00 AM – 6:00 PM EST",  # Sat
+            6: "2:00 PM – 8:00 PM EST",   # Sun
+        },
     },
     "qt3nCz8rsQvTCFeDrNCE": {
         "name": "Amirah Adel", "first": "Amirah",
         "cal_id": "ZshD6RItAjbJJuNicXf2", "tz_label": "PST",
-        "capacity": 8, "work_range": "9:00 AM – 5:00 PM PST",
-        "off_weekdays": [0, 1],
-    },
-    "k9PJ9X296OSPiuYlwSJL": {
-        "name": "Adam Kuperman", "first": "Adam",
-        "cal_id": "g0JUmlXjHuafdO3avoem", "tz_label": "EST",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EST",
-        "off_weekdays": [0, 1],
+        "capacity": 8, "work_range": "10:45 AM – 4:45 PM PST",
+        "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "11:15 AM – 5:15 PM PST",  # Mon
+            1: "11:15 AM – 5:15 PM PST",  # Tue
+        },
     },
     "Kom4DBd4cfmGKyCtxdUl": {
         "name": "Alexander N", "first": "Alexander",
         "cal_id": "fwq8ZGR0f24x2yJgiFWz", "tz_label": "EST",
         "capacity": 8, "work_range": "3:00 PM – 9:00 PM EST",
         "off_weekdays": [5, 6],
-    },
-    "fYOGA6Qx7ePCSyj4OHoK": {
-        "name": "Tate Zablotny", "first": "Tate",
-        "cal_id": "4f3Fqo5B9tNDtW6JeETf", "tz_label": "EST",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
-        "off_weekdays": [6],
+        "day_ranges": {
+            2: "3:15 PM – 9:15 PM EST",  # Wed
+            3: "3:15 PM – 9:15 PM EST",  # Thu
+            4: "3:15 PM – 9:15 PM EST",  # Fri
+        },
     },
     "0QXG4WmuozFII9i4qgax": {
         "name": "Caleb Rice", "first": "Caleb",
         "cal_id": "clKTuP4p0g2pFxj4Dp4V", "tz_label": "EST",
-        "capacity": 8, "work_range": "10:00 AM – 4:00 PM EST",
+        "capacity": 8, "work_range": "10:00 AM – 2:00 PM EST",
         "off_weekdays": [1],
+        "day_ranges": {
+            0: "9:45 AM – 2:00 PM EST",  # Mon
+            6: "1:00 PM – 5:00 PM EST",  # Sun
+        },
     },
     "L3QuZWoLHezJks67v4F3": {
         "name": "Taha Qureshi", "first": "Taha",
         "cal_id": "v6xmzXV7EqyKRCqwO1Rd", "tz_label": "EST",
-        "capacity": 8, "work_range": "8:00 AM – 3:00 PM EST",
-        "off_weekdays": [5],
-    },
-    "3My1VQIb4DYa6cg9XVSb": {
-        "name": "Max Flynn", "first": "Max",
-        "cal_id": "Z3C9JPytY84lnYBACvWJ", "tz_label": "EST",
-        "capacity": 8, "work_range": "7:00 AM – 1:00 PM EST",
-        "off_weekdays": [5, 6],
+        "capacity": 8, "work_range": "10:45 AM – 7:00 PM EST",
+        "off_weekdays": [6],
+        "day_ranges": {
+            0: "11:15 AM – 6:45 PM EST",  # Mon
+            1: "11:15 AM – 6:45 PM EST",  # Tue
+        },
     },
     "P5Erp04yQsrLl7SkYPRJ": {
         "name": "Makayla Paulk", "first": "Makayla",
         "cal_id": "NXE1bKECvB58JFWmVgVY", "tz_label": "EST",
-        "capacity": 8, "work_range": "8:00 AM – 2:00 PM EST",
+        "capacity": 4, "work_range": "10:00 AM – 1:00 PM EST",
         "off_weekdays": [5, 6],
+        "day_ranges": {
+            0: "9:45 AM – 12:45 PM EST",  # Mon
+            1: "9:45 AM – 12:45 PM EST",  # Tue
+        },
     },
     "reOeBZDHObR3HpDJa13p": {
         "name": "Gavin Tranchi", "first": "Gavin",
         "cal_id": "G6j0FITA83fP3OkhGJlE", "tz_label": "PST",
-        "capacity": 8, "work_range": "8:00 AM – 2:00 PM PST",
+        "capacity": 8, "work_range": "10:45 AM – 5:00 PM PST",
         "off_weekdays": [6],
+        "day_ranges": {
+            0: "11:15 AM – 5:15 PM PST",  # Mon
+            1: "11:15 AM – 5:15 PM PST",  # Tue
+            5: "10:45 AM – 4:00 PM PST",  # Sat
+        },
     },
     "yGhnkgV8mWBxYJxLl8BK": {
         "name": "Owen Tranchi", "first": "Owen",
         "cal_id": "5YFXy13ZwZd0SlGYSsNp", "tz_label": "EST",
-        "capacity": 8, "work_range": "11:00 AM – 5:00 PM EST",
+        "capacity": 8, "work_range": "10:45 AM – 5:00 PM EST",
         "off_weekdays": [0],
         "day_ranges": {
-            2: "10:00 AM – 4:00 PM EST",   # Wed
-            5: "10:00 AM – 4:00 PM EST",   # Sat
+            1: "11:15 AM – 5:15 PM EST",  # Tue
+            2: "10:00 AM – 4:00 PM EST",  # Wed
+            5: "10:00 AM – 4:00 PM EST",  # Sat
         },
-    },
-    "TGcnIzE8QkZGtAPWdMeN": {
-        "name": "George Larsen", "first": "George",
-        "cal_id": "F9PSclTSoIhKd3bs2uRE", "tz_label": "PDT",
-        "capacity": 8, "work_range": "9:00 AM – 10:00 PM PDT",
-        "off_weekdays": [5, 6],
     },
     "tCkx14oMoGAaVkjcWU4e": {
         "name": "Alexandra Tranchi", "first": "Alexandra",
-        "cal_id": "S5hcBdUt8C8yqguanKD4", "tz_label": "EDT",
-        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EDT",
+        "cal_id": "S5hcBdUt8C8yqguanKD4", "tz_label": "EST",
+        "capacity": 8, "work_range": "12:00 PM – 6:00 PM EST",
         "off_weekdays": [5, 6],
+        "day_ranges": {
+            2: "12:15 PM – 6:15 PM EST",  # Wed
+            3: "12:15 PM – 6:15 PM EST",  # Thu
+            4: "12:15 PM – 6:15 PM EST",  # Fri
+        },
     },
     "xdu1xcDnP3mHQLl8tlW3": {
         "name": "Irena Tranchi", "first": "Irena",
-        "cal_id": "Y9sUYIbNKpvjRxE8xU0e", "tz_label": "EDT",
-        "capacity": 8, "work_range": "7:00 AM – 1:00 PM EDT",
+        "cal_id": "Y9sUYIbNKpvjRxE8xU0e", "tz_label": "EST",
+        "capacity": 8, "work_range": "9:00 AM – 1:00 PM EST",
         "off_weekdays": [5, 6],
+        "day_ranges": {
+            2: "9:15 AM – 1:00 PM EST",  # Wed
+        },
     },
     "bbkHcYD2A7pwP5RvPhfX": {
         "name": "Michael Hilgeman", "first": "Michael",
-        "cal_id": "StLLqcIxcWxhIpSsTkxY", "tz_label": "PDT",
-        "capacity": 8, "work_range": "12:00 PM – 8:00 PM PDT",
+        "cal_id": "StLLqcIxcWxhIpSsTkxY", "tz_label": "PST",
+        "capacity": 8, "work_range": "11:15 AM – 8:15 PM PST",
         "off_weekdays": [6],
+        "day_ranges": {
+            2: "10:45 AM – 5:30 PM PST",  # Wed
+            3: "11:30 AM – 7:45 PM PST",  # Thu
+            4: "10:45 AM – 7:45 PM PST",  # Fri
+            5: "12:15 PM – 8:00 PM PST",  # Sat
+        },
     },
+    # ── Pending GHL user IDs — add cal_id + userId once known ─────────────────
+    # Ryan       EST  split: 9–12 PM & 3–9 PM Mon–Fri, Sat 9:15–1:00 PM, Sun off
+    # Amaan      EST  Mon/Tue 9–5, Wed–Sat 9:15–5:30 PM, Sun off
+    # Deepak     EST  split shifts daily (complex), works all 7 days
+    # Micah      PST  Mon 11:15–4:30, Tue 9:45–3:45, Wed–Fri 10–4, Sat/Sun off
+    # Macaela    CST  Mon/Tue 11–5, Wed 12–6, Thu/Fri/Sat 11:15–5:15, Sun off
+    # Mark       EST  Mon/Tue 11:15–5:15, Wed–Fri 10:45–5, Sat/Sun off
+    # Marc       PST  Mon/Tue 1:30–6, Wed–Fri 1–6 PM, Sat/Sun off
+    # Alex Wheeler EST Mon/Tue 9:45–3:45, Wed–Fri 10–4 PM, Sat/Sun off
 }
 
 # Display order for known closers; new team members appear after these.
@@ -550,7 +608,7 @@ def api_closer_availability():
     end_ms   = int(end.timestamp()   * 1000)
 
     team_ids = get_team_user_ids()
-    cfgs     = [resolve_closer_cfg(uid) for uid in team_ids]
+    cfgs     = [resolve_closer_cfg(uid) for uid in team_ids if uid in CLOSER_CONFIG]
 
     # Known members in defined order, then unknown/new members alphabetically
     order_idx = {uid: i for i, uid in enumerate(CLOSER_ORDER)}
