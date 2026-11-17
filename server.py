@@ -153,16 +153,6 @@ CLOSER_CONFIG = {
             1: "11:15 AM – 6:45 PM EST",  # Tue
         },
     },
-    "P5Erp04yQsrLl7SkYPRJ": {
-        "name": "Makayla Paulk", "first": "Makayla",
-        "cal_id": "NXE1bKECvB58JFWmVgVY", "tz_label": "EST",
-        "capacity": 4, "work_range": "10:00 AM – 1:00 PM EST",
-        "off_weekdays": [5, 6],
-        "day_ranges": {
-            0: "9:45 AM – 12:45 PM EST",  # Mon
-            1: "9:45 AM – 12:45 PM EST",  # Tue
-        },
-    },
     "reOeBZDHObR3HpDJa13p": {
         "name": "Gavin Tranchi", "first": "Gavin",
         "cal_id": "G6j0FITA83fP3OkhGJlE", "tz_label": "PST",
@@ -301,6 +291,27 @@ CLOSER_CONFIG = {
             0: "9:45 AM – 3:45 PM EST",   # Mon
             1: "9:45 AM – 3:45 PM EST",   # Tue
         },
+    },
+    "TGcnIzE8QkZGtAPWdMeN": {
+        "name": "George Larsen", "first": "George",
+        "cal_id": "F9PSclTSoIhKd3bs2uRE", "tz_label": "PST",
+        "capacity": 8, "work_range": "9:00 AM – 10:00 PM PST",
+        "off_weekdays": [6],
+    },
+    "lRlbp4tPLtTplxZHS22O": {
+        "name": "Emily Layne", "first": "Emily",
+        "cal_id": "AbdF0aBBw6c8eYQQeRCr", "tz_label": "EST",
+        "capacity": 8, "work_range": "9:00 AM – 3:00 PM EST",
+        "off_weekdays": [0],
+        "day_ranges": {
+            4: "9:00 AM – 12:00 PM EST",  # Fri
+        },
+    },
+    "qnm8XMoAjIJdlwXpxMGV": {
+        "name": "Luke Zonka", "first": "Luke",
+        "cal_id": "WnKe7pHCL6O446qI7mHG", "tz_label": "EST",
+        "capacity": 8, "work_range": "6:00 PM – 1:00 AM EST",
+        "off_weekdays": [4, 5, 6],
     },
 }
 
