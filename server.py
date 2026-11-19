@@ -1003,10 +1003,18 @@ def webinar_dashboard():
 
 # ── Closed Client Transcripts ─────────────────────────────────────────────────
 import json as _json
+import re as _re
 from urllib.parse import unquote
 
 _TRANSCRIPTS_PATH = os.path.join(ROOT, "closed_client_transcripts.json")
 _transcripts_cache = {"data": None}
+
+_EXCLUDED_CLOSERS = [r'\] tori:', r'\] max rathbun:', r'\] maria:']
+_EXCLUDED_RE = _re.compile('|'.join(_EXCLUDED_CLOSERS), _re.IGNORECASE)
+
+def _is_excluded(record):
+    transcript = record.get("transcript", "")
+    return bool(_EXCLUDED_RE.search(transcript))
 
 def _load_transcripts():
     if _transcripts_cache["data"] is None:
@@ -1014,11 +1022,14 @@ def _load_transcripts():
             raw = _json.load(f)
         by_client = {}
         for record in raw:
+            if _is_excluded(record):
+                continue
             name = record["clientName"]
             if name not in by_client:
                 by_client[name] = []
             by_client[name].append(record)
-        _transcripts_cache["data"] = by_client
+        # Drop clients with no remaining calls
+        _transcripts_cache["data"] = {k: v for k, v in by_client.items() if v}
     return _transcripts_cache["data"]
 
 @app.route("/api/transcripts/clients")
@@ -1028,7 +1039,6 @@ def api_transcripts_clients():
     for name, calls in sorted(by_client.items(), key=lambda x: x[0].lower()):
         clients.append({
             "name": name,
-            "callCount": len(calls),
             "lastCall": max(c.get("callDate","") for c in calls),
             "closers": list({c.get("closerName","") for c in calls}),
         })
@@ -1038,7 +1048,6 @@ def api_transcripts_clients():
 def api_transcripts_client(name):
     name = unquote(name)
     by_client = _load_transcripts()
-    # Case-insensitive lookup
     match = next((k for k in by_client if k.lower() == name.lower()), None)
     if not match:
         return jsonify({"error": "not found"}), 404
