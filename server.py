@@ -1001,5 +1001,54 @@ def webinar_dashboard():
     return send_file(os.path.join(ROOT, "webinar.html"))
 
 
+# ── Closed Client Transcripts ─────────────────────────────────────────────────
+import json as _json
+from urllib.parse import unquote
+
+_TRANSCRIPTS_PATH = os.path.join(ROOT, "closed_client_transcripts.json")
+_transcripts_cache = {"data": None}
+
+def _load_transcripts():
+    if _transcripts_cache["data"] is None:
+        with open(_TRANSCRIPTS_PATH, "r") as f:
+            raw = _json.load(f)
+        by_client = {}
+        for record in raw:
+            name = record["clientName"]
+            if name not in by_client:
+                by_client[name] = []
+            by_client[name].append(record)
+        _transcripts_cache["data"] = by_client
+    return _transcripts_cache["data"]
+
+@app.route("/api/transcripts/clients")
+def api_transcripts_clients():
+    by_client = _load_transcripts()
+    clients = []
+    for name, calls in sorted(by_client.items(), key=lambda x: x[0].lower()):
+        clients.append({
+            "name": name,
+            "callCount": len(calls),
+            "lastCall": max(c.get("callDate","") for c in calls),
+            "closers": list({c.get("closerName","") for c in calls}),
+        })
+    return jsonify(clients)
+
+@app.route("/api/transcripts/client/<path:name>")
+def api_transcripts_client(name):
+    name = unquote(name)
+    by_client = _load_transcripts()
+    # Case-insensitive lookup
+    match = next((k for k in by_client if k.lower() == name.lower()), None)
+    if not match:
+        return jsonify({"error": "not found"}), 404
+    calls = sorted(by_client[match], key=lambda c: c.get("callDate",""), reverse=True)
+    return jsonify(calls)
+
+@app.route("/transcripts")
+def transcripts_dashboard():
+    return send_file(os.path.join(ROOT, "transcripts.html"))
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

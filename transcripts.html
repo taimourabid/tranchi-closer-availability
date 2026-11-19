@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Closed Client Transcripts — Tranchi AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1d2e 0%, #16213e 100%);
+    border-bottom: 1px solid #2d3748;
+    padding: 24px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+  .header .subtitle { font-size: 13px; color: #718096; margin-top: 3px; }
+  .header .stats { font-size: 13px; color: #4fd1c5; font-weight: 600; text-align: right; }
+
+  .search-bar {
+    background: #1a1d2e; border-bottom: 1px solid #2d3748;
+    padding: 16px 32px; display: flex; gap: 12px; align-items: center;
+    position: sticky; top: 73px; z-index: 99;
+  }
+  .search-bar input {
+    flex: 1; background: #2d3748; border: 1px solid #4a5568; border-radius: 8px;
+    padding: 10px 16px; color: #e2e8f0; font-size: 14px; outline: none;
+  }
+  .search-bar input:focus { border-color: #4fd1c5; }
+  .search-bar input::placeholder { color: #718096; }
+  .search-bar .count { font-size: 13px; color: #718096; white-space: nowrap; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 32px; }
+
+  .section-label {
+    font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2d3748;
+  }
+
+  .client-card {
+    background: #1a1d2e; border: 1px solid #2d3748; border-radius: 12px;
+    margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .client-card:hover { border-color: #4a5568; }
+
+  .client-header {
+    padding: 16px 20px; cursor: pointer; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+  }
+  .client-header:hover { background: rgba(255,255,255,0.03); }
+
+  .client-name { font-size: 15px; font-weight: 600; color: #fff; }
+  .client-meta { font-size: 12px; color: #718096; margin-top: 3px; }
+  .client-badges { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+
+  .badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .badge-calls { background: #2d3748; color: #a0aec0; }
+  .badge-closer { background: #1a365d; color: #63b3ed; }
+
+  .chevron {
+    color: #718096; font-size: 18px; transition: transform 0.2s; flex-shrink: 0;
+  }
+  .client-card.open .chevron { transform: rotate(180deg); }
+
+  .client-body { display: none; border-top: 1px solid #2d3748; }
+  .client-card.open .client-body { display: block; }
+
+  .call-item { border-bottom: 1px solid #1e2535; }
+  .call-item:last-child { border-bottom: none; }
+
+  .call-header {
+    padding: 12px 20px; cursor: pointer; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; background: rgba(0,0,0,0.15);
+  }
+  .call-header:hover { background: rgba(255,255,255,0.03); }
+
+  .call-date { font-size: 13px; color: #4fd1c5; font-weight: 600; }
+  .call-closer { font-size: 12px; color: #718096; }
+  .call-links { display: flex; gap: 8px; flex-shrink: 0; }
+  .call-links a {
+    font-size: 11px; color: #63b3ed; text-decoration: none; padding: 2px 8px;
+    border: 1px solid #2b4c7e; border-radius: 4px;
+  }
+  .call-links a:hover { background: #1a365d; }
+
+  .call-body { display: none; padding: 0 20px 20px; }
+  .call-item.open .call-body { display: block; }
+  .call-chevron { color: #718096; font-size: 14px; transition: transform 0.15s; flex-shrink: 0; }
+  .call-item.open .call-chevron { transform: rotate(180deg); }
+
+  .summary-box {
+    background: #0d1117; border: 1px solid #2d3748; border-radius: 8px;
+    padding: 14px 16px; margin-top: 14px; margin-bottom: 12px;
+    font-size: 13px; line-height: 1.6; color: #a0aec0;
+  }
+  .summary-box h4 { font-size: 11px; color: #4fd1c5; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px; }
+
+  .transcript-box {
+    background: #0d1117; border: 1px solid #2d3748; border-radius: 8px;
+    padding: 14px 16px; font-family: monospace; font-size: 12px;
+    line-height: 1.7; color: #cbd5e0; white-space: pre-wrap; word-break: break-word;
+    max-height: 500px; overflow-y: auto;
+  }
+  .transcript-label {
+    font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px; display: flex; justify-content: space-between;
+  }
+  .no-transcript { font-size: 13px; color: #718096; font-style: italic; padding-top: 12px; }
+
+  .loading-spinner {
+    text-align: center; padding: 20px; color: #718096; font-size: 13px;
+  }
+
+  .not-found-section {
+    margin-top: 32px; background: #1a1d2e; border: 1px solid #2d3748;
+    border-radius: 12px; padding: 20px;
+  }
+  .not-found-section h3 { font-size: 14px; color: #fc8181; margin-bottom: 12px; }
+  .not-found-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px;
+  }
+  .not-found-item { font-size: 13px; color: #718096; padding: 4px 0; }
+
+  .hidden { display: none !important; }
+
+  /* Transcript line highlighting */
+  .tline-closer { color: #68d391; }
+  .tline-client { color: #90cdf4; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Closed Client Transcripts</h1>
+    <div class="subtitle">Fathom sales call recordings — all closed clients</div>
+  </div>
+  <div class="stats" id="header-stats">Loading...</div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search client name..." oninput="filterClients()" autofocus>
+  <span class="count" id="search-count"></span>
+</div>
+
+<div class="container">
+  <div class="section-label" id="found-label">Found in Fathom</div>
+  <div id="client-list">
+    <div class="loading-spinner">Loading clients...</div>
+  </div>
+
+  <div class="not-found-section" id="not-found-section" style="display:none">
+    <h3>&#9888; Not found in Fathom (77 clients)</h3>
+    <p style="font-size:12px;color:#718096;margin-bottom:12px;">These names had no matching recording in any closer's Fathom account over the past 365 days.</p>
+    <div class="not-found-grid" id="not-found-grid"></div>
+  </div>
+</div>
+
+<script>
+const NOT_FOUND = ["Aaron Krakow","Albert IIi","Alelopez728@gmail.com","Alexa Bader","Alexander Jahelka","Ali ZIa","Altin Krchishta","ARIA JALILI","Ashley Jones","Benjamin Pierce","Berek Rankin","Brandon Sprague","Cherraine Davis","cheskel friedman","Claudia Giovannoni","Cole Sternickle","Corey II","Daniel Ahoubjm","Daniel Hernandez","Daniela Ortiz","Damoyn Warren","Fransisco Vargas","James Greninger","James Zarvos","Jeffrey Morris","Jeffrey Whitsett","Jennifer Tarbell","Jimmy Lin","Jobanny Vega Santana","Jordan Tincher","Jorge Rojo","Josiana Santos","Joshua chico","Jacques Lien","Jackie Campbell","James Zarvos","Jeffrey Whitsett","Kaylin Lightfoot","MICHEL CONVIN","Marion Mendelsohn","Marisol Luna","Mark Cozad","Matthew Bessette","Michelle Group","Nicholas Prindle","Patrick Fogarty","Pedro Pompeu","Peter Jeffery","Quincy Smith","Raul Sanchez","Regina Maglio","Richard Randall","Rick spatola","Roal Jr","Roger Martinez","Ronald Webb","Rosalva Conrad","Ryan Goff","Sabika Sheikh","Sam Zuatir","Sarah Cunningham","Sean Karr","Soniaa Bushnell","Spencer Leclair","Sunil Rangarajan","Sydni Gundersen","Thi Nguyen","Thomas Santerfeit","Timmie Crockett","Tony Velasquez","Tricia Richardson","Willam Anderson","William Jackson","Xin xu","Zachary Tullock","Danielle Simpson","Erica Llerenas","John Silva","Johnny Dehn","Joshua chico","Regina Maglio"];
+
+let allClients = [];
+let renderedTranscripts = new Set();
+
+async function init() {
+  try {
+    const res = await fetch('/api/transcripts/clients');
+    allClients = await res.json();
+    renderClients(allClients);
+    document.getElementById('header-stats').textContent =
+      `${allClients.length} clients · ${allClients.reduce((s,c)=>s+c.callCount,0)} calls`;
+    document.getElementById('search-count').textContent =
+      `${allClients.length} clients`;
+
+    // Render not-found
+    const grid = document.getElementById('not-found-grid');
+    const unique = [...new Set(NOT_FOUND)].sort();
+    grid.innerHTML = unique.map(n =>
+      `<div class="not-found-item">&#10005; ${escHtml(n)}</div>`
+    ).join('');
+    document.getElementById('not-found-section').style.display = 'block';
+  } catch(e) {
+    document.getElementById('client-list').innerHTML =
+      '<div style="color:#fc8181;padding:20px">Error loading clients: ' + e.message + '</div>';
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderClients(clients) {
+  const container = document.getElementById('client-list');
+  if (clients.length === 0) {
+    container.innerHTML = '<div style="color:#718096;padding:20px;text-align:center">No clients match your search.</div>';
+    return;
+  }
+  container.innerHTML = clients.map(c => `
+    <div class="client-card" id="card-${slugify(c.name)}" data-name="${escHtml(c.name)}">
+      <div class="client-header" onclick="toggleClient('${slugify(c.name)}', '${escHtml(c.name)}')">
+        <div>
+          <div class="client-name">${escHtml(c.name)}</div>
+          <div class="client-meta">Last call: ${c.lastCall} · Closer${c.closers.length > 1 ? 's' : ''}: ${escHtml(c.closers.join(', '))}</div>
+        </div>
+        <div class="client-badges">
+          <span class="badge badge-calls">${c.callCount} call${c.callCount !== 1 ? 's' : ''}</span>
+          <span class="chevron">&#8964;</span>
+        </div>
+      </div>
+      <div class="client-body" id="body-${slugify(c.name)}">
+        <div style="padding:16px 20px;color:#718096;font-size:13px">Loading...</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function slugify(name) {
+  return name.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+async function toggleClient(slug, name) {
+  const card = document.getElementById('card-' + slug);
+  const body = document.getElementById('body-' + slug);
+  const isOpen = card.classList.contains('open');
+
+  if (isOpen) {
+    card.classList.remove('open');
+    return;
+  }
+
+  card.classList.add('open');
+
+  // Load calls if not yet loaded
+  if (!renderedTranscripts.has(slug)) {
+    renderedTranscripts.add(slug);
+    try {
+      const res = await fetch('/api/transcripts/client/' + encodeURIComponent(name));
+      const calls = await res.json();
+      body.innerHTML = calls.map((c, i) => renderCall(c, slug, i)).join('');
+    } catch(e) {
+      body.innerHTML = `<div style="padding:16px;color:#fc8181">Error: ${e.message}</div>`;
+    }
+  }
+}
+
+function renderCall(c, clientSlug, idx) {
+  const callSlug = clientSlug + '_' + idx;
+  const links = [];
+  if (c.fathomUrl) links.push(`<a href="${escHtml(c.fathomUrl)}" target="_blank">Fathom ↗</a>`);
+  if (c.shareUrl) links.push(`<a href="${escHtml(c.shareUrl)}" target="_blank">Share ↗</a>`);
+
+  const summaryHtml = c.summary
+    ? `<div class="summary-box"><h4>AI Summary</h4>${renderMarkdown(escHtml(c.summary))}</div>`
+    : '';
+
+  let transcriptHtml = '';
+  if (c.hasTranscript && c.transcript) {
+    const lines = c.transcript.split('\n').map(line => {
+      const esc = escHtml(line);
+      if (/\] (Alyssa|Adam|Alexander|Amir|Amirah|Avery|Cade|Caden|Caleb|Harry|Kera|Lee|Peter|Tate|Luke|Ken|Jang|Izaac|Alex|Max|Noel|John):/.test(line)) {
+        return `<span class="tline-closer">${esc}</span>`;
+      }
+      return esc;
+    });
+    transcriptHtml = `
+      <div class="transcript-label">
+        <span>Full Transcript (${c.transcript.split('\n').length} lines)</span>
+      </div>
+      <div class="transcript-box">${lines.join('\n')}</div>`;
+  } else {
+    transcriptHtml = '<div class="no-transcript">No transcript available for this recording.</div>';
+  }
+
+  return `
+    <div class="call-item" id="call-${callSlug}">
+      <div class="call-header" onclick="toggleCall('${callSlug}')">
+        <div>
+          <span class="call-date">${c.callDate}</span>
+          <span class="call-closer" style="margin-left:12px">${escHtml(c.closerName || '')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="call-links">${links.join('')}</div>
+          <span class="call-chevron">&#8964;</span>
+        </div>
+      </div>
+      <div class="call-body">
+        ${summaryHtml}
+        ${transcriptHtml}
+      </div>
+    </div>`;
+}
+
+function toggleCall(slug) {
+  const item = document.getElementById('call-' + slug);
+  item.classList.toggle('open');
+}
+
+function renderMarkdown(text) {
+  // Very minimal markdown: bold, bullets, links
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:#63b3ed">$1</a>')
+    .replace(/^## (.+)$/gm, '<strong style="color:#e2e8f0;display:block;margin-top:10px;margin-bottom:4px">$1</strong>')
+    .replace(/^- (.+)$/gm, '• $1<br>')
+    .replace(/\n\n/g, '<br><br>');
+}
+
+function filterClients() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.client-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const name = card.getAttribute('data-name').toLowerCase();
+    if (!q || name.includes(q)) {
+      card.classList.remove('hidden');
+      visible++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  document.getElementById('search-count').textContent = q
+    ? `${visible} of ${allClients.length} clients`
+    : `${allClients.length} clients`;
+}
+
+init();
+</script>
+</body>
+</html>
