@@ -1007,9 +1007,9 @@ import re as _re
 from urllib.parse import unquote
 
 _TRANSCRIPTS_PATH = os.path.join(ROOT, "closed_client_transcripts.json")
-_transcripts_cache = {"data": None}
+_transcripts_cache = {"data": None, "version": 2}
 
-_EXCLUDED_CLOSERS = [r'\] tori:', r'\] max rathbun:', r'\] maria:']
+_EXCLUDED_CLOSERS = [r'\] tori:', r'\] tori shane:', r'\] victoria ventouris:', r'\] max rathbun:', r'\] maria:']
 _EXCLUDED_RE = _re.compile('|'.join(_EXCLUDED_CLOSERS), _re.IGNORECASE)
 
 def _is_excluded(record):
